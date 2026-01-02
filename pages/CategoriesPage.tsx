@@ -150,7 +150,13 @@ const MapResizeHandler = () => {
   useEffect(() => {
     const container = map.getContainer();
     const resize = () => map.invalidateSize();
-    const timeoutId = window.setTimeout(resize, 0);
+    const kick = () => {
+      resize();
+      map.setView(map.getCenter(), map.getZoom(), { animate: false });
+    };
+    const timeoutId = window.setTimeout(kick, 0);
+    const timeoutId2 = window.setTimeout(kick, 250);
+    const timeoutId3 = window.setTimeout(kick, 800);
     let observer: ResizeObserver | null = null;
 
     if (typeof ResizeObserver !== 'undefined') {
@@ -162,6 +168,8 @@ const MapResizeHandler = () => {
 
     return () => {
       window.clearTimeout(timeoutId);
+      window.clearTimeout(timeoutId2);
+      window.clearTimeout(timeoutId3);
       window.removeEventListener('resize', resize);
       observer?.disconnect();
     };
