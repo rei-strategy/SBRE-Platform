@@ -20,8 +20,8 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ onOpenAuth }) => {
         
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
           <Link to="/how-it-works" className="hover:text-blue-700 text-blue-600 transition-colors">How it works</Link>
-          <Link to="/vendor-benefits" className="hover:text-blue-700 text-blue-600 transition-colors">Vendors</Link>
           <Link to="/platform" className="hover:text-blue-700 text-blue-600 transition-colors">Platform</Link>
+          <Link to="/vendor-benefits" className="hover:text-blue-700 text-blue-600 transition-colors">Vendors</Link>
           <Link to="/pricing" className="hover:text-blue-700 transition-colors">Pricing</Link>
         </div>
 
