@@ -511,7 +511,7 @@ export const CategoriesPage: React.FC = () => {
         <div ref={detailScrollRef} className="space-y-3 h-full overflow-y-auto pr-1 pb-4 scroll-smooth">
           {!selectedListing && (
             <>
-              <div className="sticky top-0 z-20 flex items-center justify-between rounded-b-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="sticky top-0 z-20 flex items-center justify-between border border-slate-200 bg-slate-50 px-4 py-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-600">Top matches</p>
                   <p className="text-sm text-slate-500">Showing {paged.length} of {sorted.length}</p>
