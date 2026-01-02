@@ -168,7 +168,7 @@ const App: React.FC = () => {
           <NewUserOnboarding
             onComplete={() => {
               store.completeOnboarding();
-              window.location.hash = '#/industries';
+              window.location.hash = '#/platform';
             }}
           />
         </HashRouter>
@@ -183,7 +183,7 @@ const App: React.FC = () => {
         <HashRouter>
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/industries" element={<CategoriesPage />} />
+            <Route path="/platform" element={<CategoriesPage />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/vendor-benefits" element={<VendorBenefitsPage />} />
             <Route path="/pricing" element={<PricingPage />} />
@@ -218,7 +218,7 @@ const App: React.FC = () => {
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/how-it-works" element={<HowItWorksPage />} />
               <Route path="/vendor-benefits" element={<VendorBenefitsPage />} />
-              <Route path="/industries" element={<CategoriesPage />} />
+              <Route path="/platform" element={<CategoriesPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           ) : (
