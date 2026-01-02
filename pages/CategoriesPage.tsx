@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
-import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import { Search, SlidersHorizontal, MapPin, Star, ShieldCheck, Clock, Filter, Heart, ChevronDown, X, ArrowLeft, ClipboardList, TrendingUp, Briefcase, Calendar, Map, MessageSquare } from 'lucide-react';
 import { PublicNavbar } from '../components/PublicNavbar';
 import { AuthModal } from '../components/AuthModal';
@@ -143,6 +143,32 @@ const BASE_LISTINGS: Listing[] = [
     ]
   },
 ];
+
+const MapResizeHandler = () => {
+  const map = useMap();
+
+  useEffect(() => {
+    const container = map.getContainer();
+    const resize = () => map.invalidateSize();
+    const timeoutId = window.setTimeout(resize, 0);
+    let observer: ResizeObserver | null = null;
+
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(resize);
+      observer.observe(container);
+    }
+
+    window.addEventListener('resize', resize);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.removeEventListener('resize', resize);
+      observer?.disconnect();
+    };
+  }, [map]);
+
+  return null;
+};
 
 const listings: Listing[] = Array.from({ length: 75 }, (_, index) => {
   const base = BASE_LISTINGS[index % BASE_LISTINGS.length];
@@ -424,6 +450,7 @@ export const CategoriesPage: React.FC = () => {
             style={{ height: '100%', width: '100%', zIndex: 0 }}
             scrollWheelZoom
           >
+            <MapResizeHandler />
             <TileLayer
               url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
