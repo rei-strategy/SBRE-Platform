@@ -112,7 +112,7 @@ export const createAuthSlice: StoreSlice<any> = (set, get) => ({
         return { error };
     },
 
-    signup: async (email: string, pass: string, name: string, type: 'create' | 'join', joinCode?: string) => {
+    signup: async (email: string, pass: string, name: string, type: 'create' | 'join' | 'browse', joinCode?: string) => {
         set({ isLoading: true });
         try {
             const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -140,12 +140,24 @@ export const createAuthSlice: StoreSlice<any> = (set, get) => ({
                 });
                 if (settingsError) throw new Error(`Settings creation failed: ${settingsError.message}`);
 
-            } else {
+            } else if (type === 'join') {
                 if (!joinCode) throw new Error("Join code required");
                 const { data: foundId, error: rpcError } = await supabase.rpc('get_company_id_by_code', { code_input: joinCode });
                 if (rpcError || !foundId) throw new Error("Invalid Company Code");
                 companyId = foundId;
                 role = UserRole.TECHNICIAN;
+            } else {
+                companyId = crypto.randomUUID();
+                companyCode = Math.random().toString(36).substring(2, 9).toUpperCase();
+                role = UserRole.CLIENT;
+
+                const { error: settingsError } = await supabase.from('settings').insert({
+                    company_id: companyId,
+                    company_name: `${name}'s Vendor Search`,
+                    company_code: companyCode,
+                    onboarding_step: 1
+                });
+                if (settingsError) throw new Error(`Settings creation failed: ${settingsError.message}`);
             }
 
             const { error: profileError } = await supabase.from('profiles').upsert({
@@ -154,7 +166,7 @@ export const createAuthSlice: StoreSlice<any> = (set, get) => ({
                 email: email,
                 full_name: name,
                 role: role,
-                onboarding_complete: type === 'join'
+                onboarding_complete: type === 'join' ? true : type === 'browse' ? false : false
             });
 
             if (profileError) throw new Error(`Profile creation failed: ${profileError.message}`);

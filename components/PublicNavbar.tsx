@@ -13,15 +13,16 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ onOpenAuth }) => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="h-12 w-auto flex items-center justify-center">
-            <img src="https://i.imgur.com/Bt9CDPn.png" alt="Gitta Job" className="h-full w-auto object-contain" />
+          <div className="h-11 w-auto flex items-center justify-center">
+            <img src="/sbre-logo.png" alt="SBRE platform logo" className="h-full w-auto object-contain" />
           </div>
         </Link>
         
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-          <Link to="/features" className="hover:text-teal-600 transition-colors">Features</Link>
-          <Link to="/pricing" className="hover:text-teal-600 transition-colors">Pricing</Link>
-          <a href="#" className="hover:text-teal-600 transition-colors">Resources</a>
+          <Link to="/how-it-works" className="hover:text-blue-700 text-blue-600 transition-colors">How it works</Link>
+          <Link to="/vendor-benefits" className="hover:text-blue-700 text-blue-600 transition-colors">Vendors</Link>
+          <Link to="/industries" className="hover:text-blue-700 text-blue-600 transition-colors">Industries</Link>
+          <Link to="/pricing" className="hover:text-blue-700 transition-colors">Pricing</Link>
         </div>
 
         <div className="flex items-center gap-4">

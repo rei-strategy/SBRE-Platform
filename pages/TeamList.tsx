@@ -65,7 +65,7 @@ export const TeamList: React.FC<TeamListProps> = ({ users, jobs }) => {
   };
 
   const copyInviteInstructions = () => {
-    const text = `Join my team on Gitta Job!\n\n1. Go to the app.\n2. Select "Join Existing Team".\n3. Enter this code: ${settings.companyCode}`;
+    const text = `Join my team on SBRE Global!\n\n1. Go to the app.\n2. Select "Join Existing Team".\n3. Enter this code: ${settings.companyCode}`;
     navigator.clipboard.writeText(text); alert("Invite instructions copied!");
   };
 

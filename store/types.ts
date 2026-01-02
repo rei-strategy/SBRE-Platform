@@ -17,7 +17,7 @@ export interface AuthSlice {
     users: User[];
     teamInvitations: TeamInvitation[];
     login: (email: string, pass: string) => Promise<{ error: any }>;
-    signup: (email: string, pass: string, name: string, type: 'create' | 'join', joinCode?: string) => Promise<{ error: any, companyCode?: string }>;
+    signup: (email: string, pass: string, name: string, type: 'create' | 'join' | 'browse', joinCode?: string) => Promise<{ error: any, companyCode?: string }>;
     logout: () => void;
     switchUser: (role: UserRole) => void;
     checkSession: () => Promise<void>;

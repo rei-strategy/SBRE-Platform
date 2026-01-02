@@ -1,5 +1,5 @@
 # Comprehensive Feature Inventory
-**Application Name:** (Gitta Job / Internal Codename)
+**Application Name:** (SBRE Global / Internal Codename)
 **Target Market:** Field Service Management (Competitor to ServiceTitan, Jobber, Housecall Pro)
 **Core Value Prop:** All-in-one operations platform with native, advanced AI integration for marketing, dispatching, and creative generation.
 
@@ -89,7 +89,7 @@
 
 ---
 
-## 4. CRM & Client Intelligence
+## 4. Platform & Client Intelligence
 
 ### Client Management
 -   **360-View:** Centralized profile for billing address, service history, communication logs, and property details.

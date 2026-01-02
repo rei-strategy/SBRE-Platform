@@ -3,16 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gitta Job - Field Service CRM</title>
+    <title>SBRE Global - Field Service Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+      const brandTeal = {
+        50: '#e9f4fb',
+        100: '#d3e9f8',
+        200: '#a8d4f1',
+        300: '#7cbfe9',
+        400: '#50aae2',
+        500: '#0b78c8',
+        600: '#0963a6',
+        700: '#074d83',
+        800: '#053860',
+        900: '#03223d',
+      };
+
       tailwind.config = {
         darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
-            }
+            },
+            colors: {
+              brand: brandTeal[500],
+              teal: brandTeal,
+              emerald: brandTeal,
+            },
           }
         }
       }

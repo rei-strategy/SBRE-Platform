@@ -329,7 +329,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ user, onSwit
           )}
 
           <div className="mt-8 text-center shrink-0">
-            <p className="text-xs text-slate-300 font-medium">Gitta Job v2.0.1</p>
+            <p className="text-xs text-slate-300 font-medium">SBRE Global v2.0.1</p>
           </div>
         </div>
       </div>

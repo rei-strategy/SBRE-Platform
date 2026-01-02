@@ -15,21 +15,22 @@ interface LandingPageProps {
 }
 
 const BUSINESS_TYPES = [
-  "Mobile Detailing", "Landscaping", "Lawn Care", "Pressure Washing", "HVAC",
-  "Plumbing", "Electrical", "Roofing", "Solar Installation", "Pest Control",
-  "Pool Cleaning", "Window Cleaning", "Appliance Repair", "Handyman Services",
-  "Painting", "Flooring", "Garage Door Repair", "Junk Removal", "Carpet Cleaning",
-  "Tree Service", "Remodeling & Construction", "Fencing", "Gutter Cleaning",
-  "Concrete & Masonry", "Auto Glass Repair", "Towing Services", "Irrigation & Sprinkler Repair"
+  "Buy, Sell & Trade Real Estate",
+  "Remodel & Improve",
+  "Contractors & Trades",
+  "Property Management",
+  "Inspection & Valuation",
+  "Design & Build",
+  "Insurance & Risk",
+  "Title & Escrow",
+  "Small Business Operations",
+  "Financing & Capital"
 ];
 
 const CTA_BUSINESS_TYPES = [
-  "detailing", "landscaping", "lawn care", "pressure washing", "HVAC",
-  "plumbing", "electrical", "roofing", "solar installation", "pest control",
-  "pool cleaning", "window cleaning", "appliance repair", "handyman services",
-  "painting", "flooring", "garage door repair", "junk removal", "carpet cleaning",
-  "tree service", "remodeling", "fencing", "gutter cleaning", "concrete & masonry",
-  "auto glass repair", "towing", "irrigation & sprinkler repair"
+  "house flippers", "fix-and-flip ops", "BRRRR portfolios", "short-term rentals",
+  "mid-term rentals", "wholesale shops", "off-market teams", "dispo desks",
+  "construction managers", "rehab PMs", "asset managers", "JV partners"
 ];
 
 const CAROUSEL_INDUSTRIES = [
@@ -65,7 +66,7 @@ const IndustryItem: React.FC<{ name: string }> = ({ name }) => {
 
 export const LandingPage: React.FC<LandingPageProps> = () => {
   // Hero State
-  const [currentText, setCurrentText] = useState("Mobile Detailing");
+  const [currentText, setCurrentText] = useState("Buy, Sell & Trade Real Estate");
   const [isAnimating, setIsAnimating] = useState(false);
   const [sequence, setSequence] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
@@ -87,12 +88,12 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
 
   // Setup Hero Sequence
   useEffect(() => {
-    const others = BUSINESS_TYPES.filter(t => t !== "Mobile Detailing");
+    const others = BUSINESS_TYPES.filter(t => t !== "Buy, Sell & Trade Real Estate");
     for (let i = others.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [others[i], others[j]] = [others[j], others[i]];
     }
-    setSequence(["Mobile Detailing", ...others]);
+    setSequence(["Buy, Sell & Trade Real Estate", ...others]);
   }, []);
 
   // Setup CTA Sequence
@@ -173,7 +174,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
             
             {/* ROW 1 */}
             <span className="text-4xl sm:text-5xl md:text-7xl block mb-2 md:mb-4">
-              The All-In-One CRM for
+              The All-In-One Platform for
             </span>
 
             {/* ROW 2: Dynamic Rotating Text */}
@@ -198,15 +199,15 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
           </h1>
           
           <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-both delay-200">
-            Stop juggling spreadsheets and lost leads. Schedule jobs, track crews, invoice customers, and automate your growth from one beautiful dashboard.
+            The all-in-one platform for real estate ownership. Source deals, run rehabs, track capital, and automate your growth from one beautiful dashboard.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-in fade-in slide-in-from-bottom-10 duration-700 fill-mode-both delay-300">
              <Button size="lg" onClick={() => openAuth('signup')} className="h-14 px-8 text-lg shadow-2xl shadow-teal-600/20 hover:shadow-teal-600/30 hover:-translate-y-0.5 transition-all w-full sm:w-auto">
                 Start Free Trial <ArrowRight className="w-5 h-5 ml-2" />
              </Button>
-             <Link to="/features" className="flex items-center justify-center h-14 px-8 rounded-lg border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all w-full sm:w-auto">
-                View Features
+             <Link to="/how-it-works" className="flex items-center justify-center h-14 px-8 rounded-lg border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all w-full sm:w-auto">
+                How it works
              </Link>
           </div>
 
@@ -230,35 +231,98 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
         <div className="max-w-7xl mx-auto px-6">
            <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Everything you need to run your business.</h2>
-              <p className="text-lg text-slate-500">We've combined the power of a CRM, scheduling software, and marketing platform into one easy-to-use app.</p>
+              <p className="text-lg text-slate-500">We’ve combined sourcing, underwriting, rehab tracking, and investor marketing into one platform built for deal teams.</p>
            </div>
 
            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Feature Cards ... (Keep existing) */}
               <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
                   <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6 group-hover:scale-110 transition-transform">
                       <Calendar className="w-6 h-6" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-900 mb-3">Smart Scheduling</h3>
                   <p className="text-slate-500 leading-relaxed mb-6">
-                      Drag-and-drop dispatching. Optimize routes for your technicians to save fuel and time.
+                      Drag-and-drop dispatching. Optimize routes for your crews and vendors to hit timelines.
                   </p>
                   <Link to="/features" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
                       Learn more <ArrowRight className="w-4 h-4" />
                   </Link>
               </div>
-              {/* ... Other features */}
+
+              <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6 group-hover:scale-110 transition-transform">
+                      <Users className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-3">Deal Pipeline</h3>
+                  <p className="text-slate-500 leading-relaxed mb-6">
+                      Track off-market leads, JV partners, and buyer lists in one pipeline built for acquisitions and dispo.
+                  </p>
+                  <Link to="/features" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                      Learn more <ArrowRight className="w-4 h-4" />
+                  </Link>
+              </div>
+
+              <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6 group-hover:scale-110 transition-transform">
+                      <BarChart3 className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-3">Deal Analytics</h3>
+                  <p className="text-slate-500 leading-relaxed mb-6">
+                      Dashboards for pipeline velocity, margin by deal type, and crew performance so you know what to double down on.
+                  </p>
+                  <Link to="/features" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                      Learn more <ArrowRight className="w-4 h-4" />
+                  </Link>
+              </div>
+
+              <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6 group-hover:scale-110 transition-transform">
+                      <Shield className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-3">Compliance & Docs</h3>
+                  <p className="text-slate-500 leading-relaxed mb-6">
+                      Centralize permits, inspections, contracts, and change orders with reminders so nothing slips during a rehab.
+                  </p>
+                  <Link to="/features" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                      Learn more <ArrowRight className="w-4 h-4" />
+                  </Link>
+              </div>
+
+              <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6 group-hover:scale-110 transition-transform">
+                      <MapPin className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-3">Site Walks & Field Ops</h3>
+                  <p className="text-slate-500 leading-relaxed mb-6">
+                      Capture photos, punchlists, and geo-tagged updates from mobile so rehab progress is always visible.
+                  </p>
+                  <Link to="/features" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                      Learn more <ArrowRight className="w-4 h-4" />
+                  </Link>
+              </div>
+
+              <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6 group-hover:scale-110 transition-transform">
+                      <Zap className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-3">Automated Outreach</h3>
+                  <p className="text-slate-500 leading-relaxed mb-6">
+                      Trigger investor updates, dispo blasts, and seller follow-ups automatically based on deal milestones.
+                  </p>
+                  <Link to="/features" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                      Learn more <ArrowRight className="w-4 h-4" />
+                  </Link>
+              </div>
            </div>
         </div>
       </section>
 
-      {/* ... MARKETING & CRM SECTIONS ... */}
+      {/* ... MARKETING & PLATFORM SECTIONS ... */}
 
        {/* CTA */}
       <section className="py-20 bg-white border-t border-slate-100 text-center">
          <div className="max-w-3xl mx-auto px-6">
              <h2 className="text-4xl font-bold text-slate-900 mb-6">Ready to streamline your business?</h2>
-             <p className="text-xl text-slate-500 mb-10">Join the service pros who are saving time and making more money with Gitta Job.</p>
+             <p className="text-xl text-slate-500 mb-10">Join the investors and operators who are scaling deals faster with this platform.</p>
              <Button size="lg" onClick={() => openAuth('signup')} className="h-14 px-10 text-lg shadow-2xl shadow-teal-500/30">
                  Get Started Free
              </Button>
@@ -294,7 +358,7 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
               </h2>
 
               <p className="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">
-                  Be one of the first service pros to save 10+ hours a week with Gitta Job.
+                  Be one of the first investors to save 10+ hours a week while running more profitable deals.
               </p>
               
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -311,11 +375,11 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
           <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center justify-center">
                  <div className="h-10 w-auto flex items-center justify-center">
-                    <img src="https://i.imgur.com/Bt9CDPn.png" alt="Gitta Job" className="h-full w-auto object-contain" />
+                    <img src="/sbre-logo.png" alt="SBRE platform logo" className="h-9 w-auto object-contain" />
                  </div>
               </div>
               <div className="text-sm text-slate-500">
-                  &copy; {new Date().getFullYear()} Gitta Job CRM. All rights reserved.
+                  &copy; {new Date().getFullYear()} SBRE Global. All rights reserved.
               </div>
               <div className="flex gap-6 text-sm font-medium text-slate-600">
                   <a href="#" className="hover:text-slate-900">Privacy</a>

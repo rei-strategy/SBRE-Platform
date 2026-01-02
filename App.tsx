@@ -9,6 +9,9 @@ import { ClockTimer } from './components/ClockTimer';
 import { LandingPage } from './pages/LandingPage';
 import { FeaturesPage } from './pages/FeaturesPage';
 import { PricingPage } from './pages/PricingPage';
+import { HowItWorksPage } from './pages/HowItWorksPage';
+import { VendorBenefitsPage } from './pages/VendorBenefitsPage';
+import { CategoriesPage } from './pages/CategoriesPage';
 import { Dashboard } from './pages/Dashboard';
 import { Schedule } from './pages/Schedule';
 import { JobDetail } from './pages/JobDetail';
@@ -61,6 +64,10 @@ import { OpportunityFinder } from './pages/research/OpportunityFinder';
 import { GrowthPlanGenerator } from './pages/research/GrowthPlanGenerator';
 
 import { UserRole } from './types';
+import { NewUserOnboarding } from './pages/NewUserOnboarding';
+
+const LOGO_SRC = '/sbre-logo.png';
+const LOGO_ALT = 'SBRE platform logo';
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const store = useContext(StoreContext);
@@ -106,9 +113,8 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {/* Mobile Header */}
         <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md z-30 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800 transition-all print:hidden">
           <div className="flex items-center justify-center">
-            <div className="h-10 w-auto flex items-center justify-center">
-              <img src="https://i.imgur.com/Bt9CDPn.png" alt="Gitta Job" className="h-full w-auto object-contain dark:hidden" />
-              <img src="https://i.imgur.com/Bt9CDPn.png" alt="Gitta Job" className="h-full w-auto object-contain hidden dark:block brightness-0 invert" />
+            <div className="h-11 w-auto flex items-center justify-center">
+              <img src={LOGO_SRC} alt={LOGO_ALT} className="h-full w-auto object-contain" />
             </div>
           </div>
 
@@ -154,6 +160,40 @@ const App: React.FC = () => {
   // 2. OR if user is authenticated but ID is still 'guest' (incomplete load)
   const isInitializing = store.isLoading || (store.isAuthenticated && store.currentUser.id === 'guest');
 
+  // --- Client onboarding flow for vendor-search users ---
+  if (store.isAuthenticated && store.currentUser.role === UserRole.CLIENT && !store.currentUser.onboardingComplete) {
+    return (
+      <StoreContext.Provider value={store}>
+        <HashRouter>
+          <NewUserOnboarding
+            onComplete={() => {
+              store.completeOnboarding();
+              window.location.hash = '#/industries';
+            }}
+          />
+        </HashRouter>
+      </StoreContext.Provider>
+    );
+  }
+
+  // --- Client experience (skip platform shell) ---
+  if (store.isAuthenticated && store.currentUser.role === UserRole.CLIENT) {
+    return (
+      <StoreContext.Provider value={store}>
+        <HashRouter>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/industries" element={<CategoriesPage />} />
+            <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/vendor-benefits" element={<VendorBenefitsPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </HashRouter>
+      </StoreContext.Provider>
+    );
+  }
+
   if (isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
@@ -176,6 +216,9 @@ const App: React.FC = () => {
               <Route path="/" element={<LandingPage />} />
               <Route path="/features" element={<FeaturesPage />} />
               <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/how-it-works" element={<HowItWorksPage />} />
+              <Route path="/vendor-benefits" element={<VendorBenefitsPage />} />
+              <Route path="/industries" element={<CategoriesPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           ) : (

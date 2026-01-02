@@ -47,11 +47,11 @@ serve(async (req) => {
         const { data, error } = await supabase.functions.invoke('send-email', {
             body: {
                 to: email,
-                subject: `Join ${companyName} on Gitta Job`,
+                subject: `Join ${companyName} on SBRE Global`,
                 html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
             <h1>You've been invited!</h1>
-            <p><strong>{{company_name}}</strong> has invited you to join their team on Gitta Job.</p>
+            <p><strong>{{company_name}}</strong> has invited you to join their team on SBRE Global.</p>
             
             <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
               <p style="margin-bottom: 10px; color: #6b7280; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Your Company Code</p>
@@ -60,7 +60,7 @@ serve(async (req) => {
 
             <p>To join:</p>
             <ol>
-              <li>Download the Gitta Job app or go to the website.</li>
+              <li>Download the SBRE Global app or go to the website.</li>
               <li>Select <strong>"Join Existing Team"</strong>.</li>
               <li>Enter the code above.</li>
             </ol>

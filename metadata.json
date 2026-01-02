@@ -1,6 +1,6 @@
 {
-  "name": "Gitta Job",
-  "description": "A specialized Field Service Management system for service businesses.",
+  "name": "SBRE Global",
+  "description": "A specialized field service and operations platform for service businesses.",
   "requestFramePermissions": [
     "camera",
     "geolocation"

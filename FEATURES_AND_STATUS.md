@@ -1,6 +1,6 @@
 # Project Feature Status & Completion Report
 
-**Project Name:** GittaJob (Field Service BOS)
+**Project Name:** SBRE Global (Field Service BOS)
 **Date:** December 7, 2025
 **Overall Project Status:** ~85% Complete (Frontend Heavy / Backend Ready)
 
@@ -19,7 +19,7 @@ This document outlines every major feature of the application, its priority rank
 | :--- | :--- | :--- | :--- |
 | **Schedule Calendar** | Drag-and-drop calendar for dispatching. | 95% | Fully functional UI. Needs final real-time sync verification. |
 | **Job Card Management** | Create, edit, and track job statuses. | 90% | State logic is robust (`createJobSlice`). |
-| **Client CRM** | Client profiles, history, and property management. | 90% | Tables created, UI integrated. |
+| **Client Platform** | Client profiles, history, and property management. | 90% | Tables created, UI integrated. |
 | **Routing / Maps** | Visualizing jobs on a map (Leaflet). | 85% | Map component exists. Routing optimization logic is basic. |
 
 ## 2. 👷 Field Technician App (Mobile View)

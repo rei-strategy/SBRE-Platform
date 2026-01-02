@@ -1,7 +1,7 @@
 
 import React, { useState, useContext, useEffect } from 'react';
 import { StoreContext } from '../store';
-import { X, Mail, Lock, User, Loader2, AlertCircle, Building2, Users, CheckCircle, Copy } from 'lucide-react';
+import { X, Mail, Lock, User, Loader2, AlertCircle, Building2, Users, CheckCircle, Copy, Search } from 'lucide-react';
 import { Button } from './Button';
 
 interface AuthModalProps {
@@ -15,7 +15,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
   const [mode, setMode] = useState<'login' | 'signup'>(defaultMode);
   
   // Signup Sub-mode: Initialize as null so nothing is pre-selected
-  const [signupMode, setSignupMode] = useState<'create' | 'join' | null>(null);
+  const [signupMode, setSignupMode] = useState<'browse' | 'create' | 'join' | null>(null);
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
         
         // Validation: Ensure user has selected a mode
         if (!signupMode) {
-            throw new Error("Please select whether you are starting a New Company or joining an existing Team.");
+            throw new Error("Please select whether you are starting as a New User, New Company, or joining a Team.");
         }
 
         if (signupMode === 'join' && !formData.joinCode) throw new Error("Company Code is required to join a team");
@@ -166,14 +166,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
             
             {/* SIGNUP TYPE SELECTION */}
             {mode === 'signup' && (
-                <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                    <button
+                        type="button"
+                        onClick={() => setSignupMode('browse')}
+                        className={`p-3 rounded-xl border flex flex-col items-center gap-2 transition-all ${signupMode === 'browse' ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400' : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                    >
+                        <Search className="w-5 h-5" />
+                        <span className="text-xs font-bold uppercase text-center">New User</span>
+                    </button>
                     <button
                         type="button"
                         onClick={() => setSignupMode('create')}
                         className={`p-3 rounded-xl border flex flex-col items-center gap-2 transition-all ${signupMode === 'create' ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400' : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                     >
                         <Building2 className="w-5 h-5" />
-                        <span className="text-xs font-bold uppercase">New Company</span>
+                        <span className="text-xs font-bold uppercase">New Vendor</span>
                     </button>
                     <button
                         type="button"
@@ -253,14 +261,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
             <Button 
               type="submit" 
               className="w-full h-11 text-base shadow-lg shadow-teal-500/20 mt-4" 
-              disabled={isLoading}
+              disabled={isLoading || (mode === 'signup' && !signupMode)}
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : mode === 'login' ? (
                 'Log In'
+              ) : signupMode === 'browse' ? (
+                'Create Account'
               ) : signupMode === 'create' ? (
-                'Create Company'
+                'New Vendor'
               ) : signupMode === 'join' ? (
                 'Join Team'
               ) : (

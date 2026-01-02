@@ -1,9 +1,9 @@
-# Field Service & Business Operations Platform ("GittaJob")
+# Field Service & Business Operations Platform ("SBRE Global")
 
 ## 🚀 Project Overview
 This application is a comprehensive **Business Operating System (BOS)** designed for service-based businesses (e.g., HVAC, plumbing, landscaping, construction). It goes beyond simple job scheduling to handle the entire lifecycle of the business: from marketing and lead generation to field operations, invoicing, inventory, and payroll.
 
-The goal is to provide **one single pane of glass** for business owners to run their entire company, replacing fragmented tools like spreadsheets, separate CRM software, and distinct marketing platforms.
+The goal is to provide **one single pane of glass** for business owners to run their entire company, replacing fragmented tools like spreadsheets, separate platforms, and distinct marketing tools.
 
 ---
 

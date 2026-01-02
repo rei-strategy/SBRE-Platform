@@ -2,7 +2,7 @@ import { BrandKit } from '../types';
 
 export const MOCK_BRAND_KIT: BrandKit = {
     id: 'bk-001',
-    name: 'Gitta Job Default',
+    name: 'SBRE Global Default',
     logoUrl: 'https://cdn-icons-png.flaticon.com/512/2917/2917242.png', // Generic car icon
     colors: {
         primary: '#2563EB', // Blue 600

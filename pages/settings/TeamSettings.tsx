@@ -30,7 +30,7 @@ export const TeamSettings: React.FC<TeamSettingsProps> = ({ users, updateUser, s
     };
 
     const copyInviteInstructions = () => {
-        const text = `Join my team on Gitta Job!\n\n1. Go to the app.\n2. Select "Join Existing Team".\n3. Enter this code: ${settings.companyCode}`;
+        const text = `Join my team on SBRE Global!\n\n1. Go to the app.\n2. Select "Join Existing Team".\n3. Enter this code: ${settings.companyCode}`;
         navigator.clipboard.writeText(text);
         alert("Invite instructions copied to clipboard!");
     };
@@ -167,7 +167,7 @@ export const TeamSettings: React.FC<TeamSettingsProps> = ({ users, updateUser, s
                     </div>
 
                     <div className="flex gap-3 justify-center">
-                        <Button variant="secondary" onClick={() => window.open(`mailto:?subject=Join ${settings.companyName} on Gitta Job&body=Hey,%0D%0A%0D%0APlease join our workspace on Gitta Job.%0D%0A%0D%0A1. Create an account.%0D%0A2. Select "Join Existing Team".%0D%0A3. Enter code: ${settings.companyCode}`)}>
+                        <Button variant="secondary" onClick={() => window.open(`mailto:?subject=Join ${settings.companyName} on SBRE Global&body=Hey,%0D%0A%0D%0APlease join our workspace on SBRE Global.%0D%0A%0D%0A1. Create an account.%0D%0A2. Select "Join Existing Team".%0D%0A3. Enter code: ${settings.companyCode}`)}>
                             <Mail className="w-4 h-4 mr-2" /> Send Email
                         </Button>
                         <Button variant="secondary" onClick={copyInviteInstructions}>

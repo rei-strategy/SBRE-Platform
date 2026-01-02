@@ -4,7 +4,7 @@
 -- This script contains the COMPLETE definition for the application.
 -- It is designed to be idempotent (safe to run multiple times).
 -- Contains:
--- 1. Core CRM & Operations (Jobs, Clients, Invoices, etc.)
+-- 1. Core Platform & Operations (Jobs, Clients, Invoices, etc.)
 -- 2. Marketing & Automations
 -- 3. Inventory System
 -- 4. Ads Intelligence Demo Data

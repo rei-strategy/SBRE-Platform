@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-labelledby="title desc">
+  <title id="title">SBRE Logo</title>
+  <desc id="desc">House outline with SBRE wordmark and swoosh.</desc>
+  <rect width="320" height="180" fill="none" />
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 118 L98 42 L174 118" stroke="#0a7cc7" stroke-width="12" />
+    <path d="M98 42 L98 22" stroke="#0a7cc7" stroke-width="12" />
+    <path d="M42 120 L42 86" stroke="#8c9298" stroke-width="12" />
+    <path d="M30 124 Q96 148 176 140" stroke="#8c9298" stroke-width="12" />
+  </g>
+  <g fill="#0a7cc7" font-family="Montserrat, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="700">
+    <text x="188" y="124" font-size="70">SBRE</text>
+    <text x="132" y="124" font-size="70">S</text>
+  </g>
+</svg>
