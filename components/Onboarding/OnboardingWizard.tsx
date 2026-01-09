@@ -7,17 +7,12 @@ import {
     Building2, Mail, Copy, Check, Plus, Trash2, User
 } from 'lucide-react';
 import { Button } from '../Button';
+import { INDUSTRY_OPTIONS } from '../../data/industryOptions';
 
-const INDUSTRIES = [
-    { id: 'hvac', label: 'HVAC', icon: '❄️' },
-    { id: 'plumbing', label: 'Plumbing', icon: '🔧' },
-    { id: 'electrical', label: 'Electrical', icon: '⚡' },
-    { id: 'cleaning', label: 'Cleaning', icon: '🧹' },
-    { id: 'landscaping', label: 'Landscaping', icon: '🌳' },
-    { id: 'pest_control', label: 'Pest Control', icon: '🐜' },
-    { id: 'general', label: 'General Contractor', icon: '🔨' },
-    { id: 'other', label: 'Other', icon: '✨' }
-];
+const INDUSTRIES = INDUSTRY_OPTIONS.map((industry) => ({
+    ...industry,
+    icon: '🏠'
+}));
 
 export const OnboardingWizard: React.FC = () => {
     const store = useContext(StoreContext);
@@ -75,27 +70,45 @@ export const OnboardingWizard: React.FC = () => {
     const generateSmartTemplates = (industryId: string) => {
         let templates: JobTemplate[] = [];
         switch (industryId) {
-            case 'hvac':
+            case 'property-management':
                 templates = [
-                    { id: crypto.randomUUID(), name: "AC Tune-Up", description: "Seasonal maintenance check.", defaultPrice: 89, defaultDurationMinutes: 60, category: "Maintenance" },
-                    { id: crypto.randomUUID(), name: "Diagnostic Visit", description: "Troubleshoot system issues.", defaultPrice: 99, defaultDurationMinutes: 45, category: "Repair" }
+                    { id: crypto.randomUUID(), name: "Unit Turnover", description: "Vacant unit make-ready scope.", defaultPrice: 450, defaultDurationMinutes: 240, category: "Turnover" },
+                    { id: crypto.randomUUID(), name: "Leasing Walkthrough", description: "Pre-leasing inspection.", defaultPrice: 125, defaultDurationMinutes: 60, category: "Inspection" }
                 ];
                 break;
-            case 'plumbing':
+            case 'multifamily':
                 templates = [
-                    { id: crypto.randomUUID(), name: "Drain Cleaning", description: "Clear clogged drain.", defaultPrice: 150, defaultDurationMinutes: 60, category: "Service" },
-                    { id: crypto.randomUUID(), name: "Leak Detection", description: "Locate and assess leak.", defaultPrice: 120, defaultDurationMinutes: 60, category: "Diagnostic" }
+                    { id: crypto.randomUUID(), name: "Amenity Refresh", description: "Pool, gym, and common area refresh.", defaultPrice: 750, defaultDurationMinutes: 360, category: "Amenities" },
+                    { id: crypto.randomUUID(), name: "Work Order Bundle", description: "Batch maintenance for occupied units.", defaultPrice: 320, defaultDurationMinutes: 180, category: "Maintenance" }
                 ];
                 break;
-            case 'cleaning':
+            case 'single-family':
                 templates = [
-                    { id: crypto.randomUUID(), name: "Standard Clean", description: "Regular home cleaning.", defaultPrice: 120, defaultDurationMinutes: 120, category: "Residential" },
-                    { id: crypto.randomUUID(), name: "Deep Clean", description: "Thorough deep cleaning.", defaultPrice: 250, defaultDurationMinutes: 240, category: "Residential" }
+                    { id: crypto.randomUUID(), name: "Rental Turnover", description: "SFR turnover and punch list.", defaultPrice: 380, defaultDurationMinutes: 240, category: "Turnover" },
+                    { id: crypto.randomUUID(), name: "Move-In Inspection", description: "Baseline inspection with photos.", defaultPrice: 150, defaultDurationMinutes: 90, category: "Inspection" }
+                ];
+                break;
+            case 'commercial':
+                templates = [
+                    { id: crypto.randomUUID(), name: "Tenant Buildout Punch", description: "Punch list for tenant buildout.", defaultPrice: 980, defaultDurationMinutes: 480, category: "Project" },
+                    { id: crypto.randomUUID(), name: "Preventative Maintenance", description: "Quarterly mechanical and electrical check.", defaultPrice: 420, defaultDurationMinutes: 180, category: "Maintenance" }
+                ];
+                break;
+            case 'hoa':
+                templates = [
+                    { id: crypto.randomUUID(), name: "Community Grounds", description: "Common area upkeep.", defaultPrice: 260, defaultDurationMinutes: 180, category: "Grounds" },
+                    { id: crypto.randomUUID(), name: "Violation Walk", description: "Compliance walk and notes.", defaultPrice: 120, defaultDurationMinutes: 90, category: "Inspection" }
+                ];
+                break;
+            case 'construction':
+                templates = [
+                    { id: crypto.randomUUID(), name: "Scope Walkthrough", description: "Scope walkthrough and budget.", defaultPrice: 300, defaultDurationMinutes: 120, category: "Planning" },
+                    { id: crypto.randomUUID(), name: "Draw Inspection", description: "Progress inspection for draw.", defaultPrice: 220, defaultDurationMinutes: 90, category: "Inspection" }
                 ];
                 break;
             default:
                 templates = [
-                    { id: crypto.randomUUID(), name: "Standard Service", description: "General service call.", defaultPrice: 99, defaultDurationMinutes: 60, category: "General" }
+                    { id: crypto.randomUUID(), name: "Standard Service", description: "General real estate service call.", defaultPrice: 150, defaultDurationMinutes: 90, category: "General" }
                 ];
         }
         setGeneratedTemplates(templates);

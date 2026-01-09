@@ -7,7 +7,7 @@ import {
     Chat, ChatMessage, AppSettings, JobTemplate, TeamInvitation,
     UserRole, JobStatus, InvoiceStatus, QuoteStatus, POStatus,
     TimeEntryStatus, LineItem, ChecklistItem, JobPhoto, AutomationTriggerType, ConditionGroup, AutomationCondition, TimeEntryType, Property,
-    CrmAccount, CrmAsset, CrmCase, CrmContact, CrmInvoice, CrmJobProject, CrmQuote, CrmServiceCategory, CrmTask, CrmTerritory, CrmLocation, CrmPipelineConfig
+    CrmAccount, CrmAsset, CrmCase, CrmContact, CrmInvoice, CrmJobProject, CrmQuote, CrmServiceCategory, CrmTask, CrmTerritory, CrmLocation, CrmPipelineConfig, CrmActivity
 } from '../types';
 
 // Define the shape of each slice
@@ -140,9 +140,11 @@ export interface CrmSlice {
     crmTasks: CrmTask[];
     crmCases: CrmCase[];
     crmPipelineConfigs: CrmPipelineConfig[];
+    crmActivities: CrmActivity[];
     addCrmPipelineConfig: (config: CrmPipelineConfig) => void;
     updateCrmPipelineConfig: (config: CrmPipelineConfig) => void;
     removeCrmPipelineConfig: (configId: string) => void;
+    updateCrmActivity: (activityId: string, updates: Partial<CrmActivity>) => void;
 }
 
 export interface UiSlice {

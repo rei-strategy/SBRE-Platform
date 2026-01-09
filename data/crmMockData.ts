@@ -11,6 +11,7 @@ import {
   CrmTask,
   CrmTerritory,
   CrmPipelineConfig,
+  CrmActivity,
 } from '../types';
 
 export const crmServiceCategories: CrmServiceCategory[] = [
@@ -317,8 +318,8 @@ export const crmCases: CrmCase[] = [
 export const crmPipelineConfigs: CrmPipelineConfig[] = [
   {
     id: 'pipeline-real-estate',
-    industryId: 'real-estate',
-    name: 'Real Estate Services',
+    industryId: 'property-management',
+    name: 'Property Management Pipeline',
     stages: [
       {
         id: 'inquiry',
@@ -370,5 +371,76 @@ export const crmPipelineConfigs: CrmPipelineConfig[] = [
         ],
       },
     ],
+  },
+];
+
+export const crmActivities: CrmActivity[] = [
+  {
+    id: 'activity-1001',
+    accountId: 'acct-pm-blue-ridge',
+    relatedTo: { type: 'JOB', id: 'job-1001' },
+    channel: 'STATUS',
+    direction: 'INTERNAL',
+    subject: 'Stage moved to Work Order',
+    detail: 'Qualified scope approved by asset manager.',
+    createdAt: '2025-01-12T14:05:00Z',
+    statusFrom: 'Qualified',
+    statusTo: 'Work Order',
+  },
+  {
+    id: 'activity-1002',
+    accountId: 'acct-pm-blue-ridge',
+    relatedTo: { type: 'CONTACT', id: 'contact-blue-ridge-prop' },
+    channel: 'EMAIL',
+    direction: 'OUTBOUND',
+    subject: 'Quote sent for Unit 304 turnover',
+    detail: 'Sent quote and scope summary via email.',
+    createdAt: '2025-01-05T16:30:00Z',
+  },
+  {
+    id: 'activity-1003',
+    accountId: 'acct-pm-blue-ridge',
+    relatedTo: { type: 'JOB', id: 'job-1001' },
+    channel: 'SMS',
+    direction: 'INBOUND',
+    subject: 'Access instructions received',
+    detail: 'Gate code confirmed for Eastside Lofts.',
+    createdAt: '2025-01-13T09:10:00Z',
+  },
+  {
+    id: 'activity-1004',
+    accountId: 'acct-reit-lonestar',
+    relatedTo: { type: 'LOCATION', id: 'loc-tech-hub' },
+    channel: 'CALL',
+    direction: 'OUTBOUND',
+    subject: 'Compliance walkthrough call',
+    detail: 'Discussed annual inspection schedule.',
+    createdAt: '2025-01-08T18:20:00Z',
+    callRecordingUrl: 'recording://calls/tech-hub-0108',
+    consent: {
+      required: true,
+      granted: false,
+      method: 'VERBAL',
+    },
+  },
+  {
+    id: 'activity-1005',
+    accountId: 'acct-reit-lonestar',
+    relatedTo: { type: 'ASSET', id: 'asset-panel-002' },
+    channel: 'NOTE',
+    direction: 'INTERNAL',
+    subject: 'Inspection checklist updated',
+    detail: 'Added arc-fault test to panel checklist.',
+    createdAt: '2025-01-09T11:45:00Z',
+  },
+  {
+    id: 'activity-1006',
+    accountId: 'acct-pm-blue-ridge',
+    relatedTo: { type: 'JOB', id: 'job-1001' },
+    channel: 'FILE',
+    direction: 'INTERNAL',
+    subject: 'Move-out inspection photos',
+    detail: 'Uploaded 8 photos to turnover folder.',
+    createdAt: '2025-01-11T13:00:00Z',
   },
 ];

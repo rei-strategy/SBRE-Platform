@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useContext } from 'react';
 import { Job, Client, User, PipelineStage, Invoice } from '../types';
 import {
   DollarSign, Calendar, User as UserIcon, Clock, AlertCircle,
@@ -7,8 +7,9 @@ import {
   Flame, Snowflake, Sun, Zap, Send, MousePointerClick, Phone, MoreHorizontal, CloudRain, Smile, Frown, Gem, CalendarPlus, Ban
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { format, differenceInDays, parseISO } from 'date-fns';
+import { format, differenceInDays, differenceInHours, parseISO } from 'date-fns';
 import { StageCommandCenter } from '../components/StageCommandCenter';
+import { StoreContext } from '../store';
 
 interface PipelineProps {
   jobs: Job[];
@@ -130,6 +131,7 @@ function deg2rad(deg: number) {
 }
 
 export const Pipeline: React.FC<PipelineProps> = ({ jobs, clients, users, invoices, onUpdateStage }) => {
+  const store = useContext(StoreContext);
   const [draggingJobId, setDraggingJobId] = useState<string | null>(null);
   const [hoveredJobId, setHoveredJobId] = useState<string | null>(null);
   const [commandCenterStage, setCommandCenterStage] = useState<PipelineStage | null>(null);
@@ -156,6 +158,34 @@ export const Pipeline: React.FC<PipelineProps> = ({ jobs, clients, users, invoic
     });
     return grouped;
   }, [jobs]);
+
+  const stageMap: Partial<Record<PipelineStage, string>> = {
+    LEAD: 'inquiry',
+    ESTIMATE_SENT: 'quote',
+    APPROVED: 'qualified',
+    SCHEDULED: 'work-order',
+    IN_PROGRESS: 'work-order',
+    COMPLETED: 'completion',
+    INVOICED: 'review',
+    PAID: 'review',
+  };
+
+  const pipelineConfig = useMemo(() => {
+    if (!store) return null;
+    const industryId = store.settings?.industry;
+    return (
+      store.crmPipelineConfigs.find((config) => config.industryId === industryId) ||
+      store.crmPipelineConfigs[0] ||
+      null
+    );
+  }, [store]);
+
+  const getStageMeta = (stageId: PipelineStage) => {
+    if (!pipelineConfig) return null;
+    const crmStageId = stageMap[stageId];
+    if (!crmStageId) return null;
+    return pipelineConfig.stages.find((stage) => stage.id === crmStageId) || null;
+  };
 
   const handleDragStart = (e: React.DragEvent, jobId: string) => {
     e.dataTransfer.setData('jobId', jobId);
@@ -235,6 +265,18 @@ export const Pipeline: React.FC<PipelineProps> = ({ jobs, clients, users, invoic
             const totalValue = stageJobs.reduce((sum, j) => sum + j.items.reduce((s, i) => s + i.total, 0), 0);
             const weightedValue = getWeightedValue(stage.id, totalValue);
             const action = getSmartAction(stage.id);
+            const stageMeta = getStageMeta(stage.id);
+            const slaHours = stageMeta?.slaHours;
+            const overdueCount = slaHours
+              ? stageJobs.filter((job) => {
+                  const anchor = job.lastStageChange || job.start;
+                  if (!anchor) return false;
+                  return differenceInHours(new Date(), parseISO(anchor)) > slaHours;
+                }).length
+              : 0;
+            const triggerLabels = stageMeta?.automationTriggers?.map((trigger) =>
+              trigger.action.replace(/_/g, ' ').toLowerCase()
+            );
 
             return (
               <div
@@ -260,10 +302,23 @@ export const Pipeline: React.FC<PipelineProps> = ({ jobs, clients, users, invoic
                       <span className="text-[10px] font-bold opacity-80 shrink-0">${totalValue.toLocaleString()}</span>
                     )}
                   </div>
+                  {slaHours && (
+                    <div className="flex items-center justify-between text-[10px] font-semibold opacity-80">
+                      <span>SLA {slaHours}h</span>
+                      {overdueCount > 0 && (
+                        <span className="text-rose-700">Overdue {overdueCount}</span>
+                      )}
+                    </div>
+                  )}
                   {/* Weighted Forecast */}
                   {totalValue > 0 && zoomLevel > 0.8 && (
                     <div className="text-[9px] opacity-60 font-mono text-right">
                       Forecast: ${Math.round(weightedValue).toLocaleString()}
+                    </div>
+                  )}
+                  {triggerLabels && triggerLabels.length > 0 && zoomLevel > 0.7 && (
+                    <div className="text-[9px] opacity-70">
+                      Triggers: {triggerLabels.join(', ')}
                     </div>
                   )}
                 </div>

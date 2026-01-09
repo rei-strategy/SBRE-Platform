@@ -743,6 +743,33 @@ export interface CrmPipelineConfig {
   stages: CrmPipelineStage[];
 }
 
+export type CrmActivityChannel = 'EMAIL' | 'SMS' | 'CALL' | 'NOTE' | 'FILE' | 'STATUS';
+export type CrmActivityDirection = 'INBOUND' | 'OUTBOUND' | 'INTERNAL';
+export type CrmConsentMethod = 'VERBAL' | 'WRITTEN' | 'DIGITAL';
+
+export interface CrmConsentRecord {
+  required: boolean;
+  granted: boolean;
+  method?: CrmConsentMethod;
+  recordedAt?: string;
+}
+
+export interface CrmActivity {
+  id: string;
+  accountId: string;
+  relatedTo?: CrmEntityRef;
+  channel: CrmActivityChannel;
+  direction: CrmActivityDirection;
+  subject: string;
+  detail?: string;
+  createdAt: string;
+  createdBy?: string;
+  statusFrom?: string;
+  statusTo?: string;
+  callRecordingUrl?: string;
+  consent?: CrmConsentRecord;
+}
+
 // ==============================================
 // MARKETING & ADS INTELLIGENCE TYPES
 // ==============================================

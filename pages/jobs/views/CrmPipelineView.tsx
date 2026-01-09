@@ -3,6 +3,8 @@ import { StoreContext } from '../../../store';
 import { Button } from '../../../components/Button';
 import { CrmPipelineConfig, CrmPipelineStage, CrmPipelineTriggerAction } from '../../../types';
 import { ChevronDown, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { INDUSTRY_OPTIONS } from '../../../data/industryOptions';
+import { CrmActivityFeed } from './CrmActivityFeed';
 
 const triggerOptions: { id: CrmPipelineTriggerAction; label: string }[] = [
   { id: 'CREATE_QUOTE', label: 'Auto-create quote' },
@@ -15,7 +17,7 @@ const triggerOptions: { id: CrmPipelineTriggerAction; label: string }[] = [
 const createDefaultPipeline = (industryId: string): CrmPipelineConfig => ({
   id: `pipeline-${crypto.randomUUID()}`,
   industryId,
-  name: `${industryId} pipeline`,
+  name: `${industryId.replace(/-/g, ' ')} pipeline`,
   stages: [
     { id: 'inquiry', name: 'Inquiry', order: 1, slaHours: 2 },
     { id: 'qualified', name: 'Qualified', order: 2, slaHours: 24 },
@@ -47,6 +49,9 @@ export const CrmPipelineView: React.FC = () => {
     store.updateCrmPipelineConfig(nextConfig);
     setActiveConfigId(nextConfig.id);
   };
+
+  const onboardingIndustry = store.settings?.industry;
+  const onboardingIndustryLabel = INDUSTRY_OPTIONS.find((option) => option.id === onboardingIndustry)?.label;
 
   const updateStage = (stageId: string, updates: Partial<CrmPipelineStage>) => {
     const stages = activeConfig.stages.map((stage) =>
@@ -106,7 +111,8 @@ export const CrmPipelineView: React.FC = () => {
   };
 
   const addPipeline = () => {
-    const newConfig = createDefaultPipeline('new-industry');
+    const defaultIndustry = store.settings?.industry || INDUSTRY_OPTIONS[0]?.id || 'property-management';
+    const newConfig = createDefaultPipeline(defaultIndustry);
     store.addCrmPipelineConfig(newConfig);
     setActiveConfigId(newConfig.id);
   };
@@ -160,12 +166,35 @@ export const CrmPipelineView: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Industry ID</label>
-            <input
-              value={activeConfig.industryId}
-              onChange={(e) => updateConfig({ ...activeConfig, industryId: e.target.value })}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-            />
+            <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Industry</label>
+            <div className="flex flex-col gap-2">
+              <div className="relative">
+                <select
+                  className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2 pr-8 text-sm font-semibold text-slate-700"
+                  value={activeConfig.industryId}
+                  onChange={(e) => updateConfig({ ...activeConfig, industryId: e.target.value })}
+                >
+                  {INDUSTRY_OPTIONS.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              </div>
+              {onboardingIndustry && (
+                <div className="text-xs text-slate-500">
+                  Onboarding industry: <span className="font-semibold text-slate-700">{onboardingIndustryLabel || onboardingIndustry}</span>
+                  <button
+                    className="ml-2 text-emerald-600 font-semibold"
+                    onClick={() => updateConfig({ ...activeConfig, industryId: onboardingIndustry })}
+                    type="button"
+                  >
+                    Sync
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -249,6 +278,8 @@ export const CrmPipelineView: React.FC = () => {
             ))}
         </div>
       </div>
+
+      <CrmActivityFeed />
     </div>
   );
 };
