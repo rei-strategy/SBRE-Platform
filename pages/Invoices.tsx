@@ -110,9 +110,22 @@ export const Invoices: React.FC<InvoicesProps> = ({ invoices, clients, onCreateI
 
     const handleRecordPayment = (e: React.MouseEvent, invoice: Invoice) => {
         e.stopPropagation();
+        const receiptId = invoice.receiptId || `RCT-${invoice.id.slice(0, 6).toUpperCase()}`;
         const paidInvoice: Invoice = {
-            ...invoice, status: InvoiceStatus.PAID, balanceDue: 0,
-            payments: [...invoice.payments, { id: crypto.randomUUID(), invoiceId: invoice.id, amount: invoice.balanceDue, method: 'CREDIT_CARD', date: new Date().toISOString() }]
+            ...invoice,
+            status: InvoiceStatus.PAID,
+            balanceDue: 0,
+            receiptId,
+            payments: [
+                ...invoice.payments,
+                {
+                    id: crypto.randomUUID(),
+                    invoiceId: invoice.id,
+                    amount: invoice.balanceDue,
+                    method: 'CREDIT_CARD',
+                    date: new Date().toISOString()
+                }
+            ]
         };
         onUpdateInvoice(paidInvoice);
     };

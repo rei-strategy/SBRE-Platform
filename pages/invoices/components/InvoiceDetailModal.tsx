@@ -75,7 +75,12 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
                             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Payment Details</h3>
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm"><span className="text-slate-500">Subtotal</span> <span className="font-medium text-slate-900 dark:text-white">${invoice.subtotal.toFixed(2)}</span></div>
-                                <div className="flex justify-between text-sm"><span className="text-slate-500">Tax (10%)</span> <span className="font-medium text-slate-900 dark:text-white">${invoice.tax.toFixed(2)}</span></div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-slate-500">
+                                        {invoice.taxLabel || 'Tax'} ({((invoice.taxRate ?? 0) * 100).toFixed(1)}%)
+                                    </span>
+                                    <span className="font-medium text-slate-900 dark:text-white">${invoice.tax.toFixed(2)}</span>
+                                </div>
                                 <div className="border-t border-slate-200 dark:border-slate-700 my-2 pt-2 flex justify-between">
                                     <span className="font-bold text-slate-700 dark:text-slate-200">Total</span>
                                     <span className="font-bold text-slate-900 dark:text-white text-lg">${invoice.total.toFixed(2)}</span>
@@ -88,6 +93,11 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
                                     <span className="text-xs font-bold text-slate-500 uppercase">Balance Due</span>
                                     <span className="font-bold text-red-600 dark:text-red-400">${invoice.balanceDue.toFixed(2)}</span>
                                 </div>
+                                {invoice.receiptId && (
+                                    <div className="text-xs text-slate-500">
+                                        Receipt: <span className="font-semibold text-slate-700 dark:text-slate-300">{invoice.receiptId}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -118,6 +128,44 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
                             </table>
                         </div>
                     </div>
+
+                    {invoice.milestones && invoice.milestones.length > 0 && (
+                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-3">
+                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Escrow / Milestones</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {invoice.milestones.map((milestone) => (
+                                    <div key={milestone.id} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-sm">
+                                        <div className="font-semibold text-slate-900 dark:text-white">{milestone.label}</div>
+                                        <div className="text-xs text-slate-500">${milestone.amount.toFixed(2)}</div>
+                                        <div className={`text-[10px] font-bold uppercase ${
+                                            milestone.status === 'RELEASED'
+                                                ? 'text-emerald-600'
+                                                : milestone.status === 'FUNDED'
+                                                ? 'text-amber-600'
+                                                : 'text-slate-500'
+                                        }`}>
+                                            {milestone.status}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {invoice.payments.length > 0 && (
+                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-2">
+                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Payment History</h3>
+                            <div className="space-y-2">
+                                {invoice.payments.map((payment) => (
+                                    <div key={payment.id} className="flex items-center justify-between text-sm">
+                                        <div className="text-slate-600 dark:text-slate-400">{format(parseISO(payment.date), 'MMM d, yyyy')}</div>
+                                        <div className="font-semibold text-slate-900 dark:text-white">${payment.amount.toFixed(2)}</div>
+                                        <div className="text-xs text-slate-500">{payment.method}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Action Footer */}
                     <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">

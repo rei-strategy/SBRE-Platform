@@ -188,9 +188,10 @@ export const createJobSlice: StoreSlice<any> = (set, get) => ({
     },
 
     optimizeRoutes: (date: Date) => {
-        const { jobs, clients, users, addNotification, currentUser } = get();
+        const { jobs, clients, users, addNotification, currentUser, settings, techAvailability } = get();
         const plans = users
             .filter((user) => user.role === UserRole.TECHNICIAN)
+            .filter((user) => techAvailability[user.id] !== false)
             .map((tech) => {
                 const techJobs = jobs.filter((job) => {
                     if (!job.assignedTechIds.includes(tech.id)) return false;
@@ -240,10 +241,37 @@ export const createJobSlice: StoreSlice<any> = (set, get) => ({
                     ordered.push(nextJob);
                 }
 
+                const baseStart = new Date(date);
+                const [startHour, startMinute] = (settings?.businessHoursStart || '08:00').split(':').map(Number);
+                baseStart.setHours(startHour || 8, startMinute || 0, 0, 0);
+                const travelBufferMs = 15 * 60 * 1000;
+                let cursor = baseStart;
+
+                const updatedJobs = ordered.map((job) => {
+                    const durationMs = job.start && job.end
+                        ? new Date(job.end).getTime() - new Date(job.start).getTime()
+                        : 90 * 60 * 1000;
+                    const start = cursor;
+                    const end = new Date(start.getTime() + durationMs);
+                    cursor = new Date(end.getTime() + travelBufferMs);
+                    return { ...job, start: start.toISOString(), end: end.toISOString() };
+                });
+
+                updatedJobs.forEach((job) => {
+                    supabase.from('jobs').update({ start_time: job.start, end_time: job.end }).eq('id', job.id);
+                });
+
+                set((state) => ({
+                    jobs: state.jobs.map((job) => {
+                        const updated = updatedJobs.find((j) => j.id === job.id);
+                        return updated ? { ...job, start: updated.start, end: updated.end } : job;
+                    })
+                }));
+
                 return {
                     techId: tech.id,
                     date: date.toISOString(),
-                    jobIds: ordered.map((job) => job.id),
+                    jobIds: updatedJobs.map((job) => job.id),
                     totalDistanceKm: Math.round(totalDistance),
                     generatedAt: new Date().toISOString(),
                 };

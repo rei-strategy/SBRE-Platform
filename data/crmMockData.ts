@@ -306,12 +306,37 @@ export const crmCases: CrmCase[] = [
     id: 'case-5001',
     accountId: 'acct-pm-blue-ridge',
     relatedTo: { type: 'JOB', id: 'job-1001' },
+    jobId: 'job-1001',
+    vendorAccountId: 'acct-summit-vendor',
+    customerAccountId: 'acct-pm-blue-ridge',
     subject: 'Punch list callback',
     description: 'Resident reported paint touch-up needed in Unit 304.',
     status: 'PENDING',
     priority: 'MEDIUM',
+    severity: 'MEDIUM',
     openedAt: '2025-01-16T18:10:00Z',
     tags: ['Turnover', 'Quality'],
+    resolutionSteps: [
+      { id: 'step-1', label: 'Review photos and scope', status: 'COMPLETED' },
+      { id: 'step-2', label: 'Schedule touch-up', status: 'IN_PROGRESS' },
+      { id: 'step-3', label: 'Confirm resolution with client', status: 'PENDING' },
+    ],
+    auditTrail: [
+      {
+        id: 'audit-1',
+        timestamp: '2025-01-16T18:12:00Z',
+        actorId: 'user-ops-01',
+        action: 'Case created',
+        detail: 'Case opened from tenant feedback form.'
+      },
+      {
+        id: 'audit-2',
+        timestamp: '2025-01-17T09:05:00Z',
+        actorId: 'user-ops-02',
+        action: 'Vendor notified',
+        detail: 'Summit Maintenance alerted for touch-up.'
+      }
+    ],
   },
 ];
 

@@ -722,17 +722,41 @@ export interface CrmTask {
   assigneeId?: string;
 }
 
+export type CrmCaseSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export interface CrmCaseResolutionStep {
+  id: string;
+  label: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+  ownerId?: string;
+  dueDate?: string;
+}
+
+export interface CrmCaseAuditEvent {
+  id: string;
+  timestamp: string;
+  actorId?: string;
+  action: string;
+  detail?: string;
+}
+
 export interface CrmCase {
   id: string;
   accountId: string;
   relatedTo?: CrmEntityRef;
+  jobId?: string;
+  vendorAccountId?: string;
+  customerAccountId?: string;
   subject: string;
   description?: string;
   status: CrmCaseStatus;
   priority: CrmPriority;
+  severity: CrmCaseSeverity;
   openedAt: string;
   closedAt?: string;
   tags?: string[];
+  resolutionSteps?: CrmCaseResolutionStep[];
+  auditTrail?: CrmCaseAuditEvent[];
   industryFields?: CrmIndustryFields;
 }
 

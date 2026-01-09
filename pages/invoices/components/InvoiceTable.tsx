@@ -60,12 +60,22 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                         invoices.map((invoice) => {
                             const client = clients.find(c => c.id === invoice.clientId);
                             const daysOverdue = invoice.status === InvoiceStatus.OVERDUE ? differenceInDays(new Date(), parseISO(invoice.dueDate)) : 0;
+                            const milestones = invoice.milestones || [];
+                            const releasedCount = milestones.filter((m) => m.status === 'RELEASED').length;
                             return (
                                 <tr key={invoice.id} onClick={() => onRowClick(invoice)} className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/50 cursor-pointer transition-colors duration-150">
                                     <td className="px-6 py-4 align-top">
                                         <div className="flex items-start gap-3">
                                             <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-400 dark:text-slate-500 shrink-0 border border-slate-200 dark:border-slate-700"><FileText className="w-5 h-5" /></div>
-                                            <div><p className="font-bold text-slate-900 dark:text-white text-sm">#{invoice.id.slice(0, 8).toUpperCase()}</p><div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 dark:text-slate-400"><Calendar className="w-3 h-3" /> {format(parseISO(invoice.issuedDate), 'MMM d, yyyy')}</div></div>
+                                            <div>
+                                                <p className="font-bold text-slate-900 dark:text-white text-sm">#{invoice.id.slice(0, 8).toUpperCase()}</p>
+                                                <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 dark:text-slate-400"><Calendar className="w-3 h-3" /> {format(parseISO(invoice.issuedDate), 'MMM d, yyyy')}</div>
+                                                {invoice.receiptId && (
+                                                    <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+                                                        Receipt: <span className="font-semibold text-slate-700 dark:text-slate-300">{invoice.receiptId}</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 align-top">
@@ -77,6 +87,11 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                                             <InvoiceStatusBadge invoice={invoice} onStatusUpdate={onStatusUpdate} />
                                             {invoice.status === InvoiceStatus.OVERDUE && daysOverdue > 0 && (<span className="text-[10px] font-bold text-red-600 dark:text-red-400 flex items-center gap-1 bg-red-50 dark:bg-red-900/30 px-1.5 py-0.5 rounded"><Clock className="w-3 h-3" /> {daysOverdue} days late</span>)}
                                             {invoice.status === InvoiceStatus.SENT && (<span className="text-[10px] text-slate-400">Due: {format(parseISO(invoice.dueDate), 'MMM d')}</span>)}
+                                            {milestones.length > 0 && (
+                                                <span className="text-[10px] text-slate-500">
+                                                    Escrow: {releasedCount}/{milestones.length} released
+                                                </span>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 align-top text-right">
