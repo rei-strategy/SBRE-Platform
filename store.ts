@@ -11,6 +11,7 @@ import { createInventorySlice } from './store/createInventorySlice';
 import { createMarketingSlice } from './store/createMarketingSlice';
 import { createCommunicationSlice } from './store/createCommunicationSlice';
 import { createCrmSlice } from './store/createCrmSlice';
+import { createCategorySlice } from './store/createCategorySlice';
 import { createUiSlice } from './store/createUiSlice';
 import { createDataSlice } from './store/createDataSlice';
 
@@ -26,6 +27,7 @@ export const useZustandStore = create<AppState>()(
             ...createMarketingSlice(...a),
             ...createCommunicationSlice(...a),
             ...createCrmSlice(...a),
+            ...createCategorySlice(...a),
             ...createUiSlice(...a),
             ...createDataSlice(...a),
         }),
@@ -41,6 +43,7 @@ export const useZustandStore = create<AppState>()(
                 syncQueue: state.syncQueue,
                 crmPipelineConfigs: state.crmPipelineConfigs,
                 crmActivities: state.crmActivities,
+                categoryLibrary: state.categoryLibrary,
                 settings: state.settings, // Often good to persist settings too
             }),
         }

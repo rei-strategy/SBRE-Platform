@@ -7,7 +7,7 @@ import {
     Chat, ChatMessage, AppSettings, JobTemplate, TeamInvitation,
     UserRole, JobStatus, InvoiceStatus, QuoteStatus, POStatus,
     TimeEntryStatus, LineItem, ChecklistItem, JobPhoto, AutomationTriggerType, ConditionGroup, AutomationCondition, TimeEntryType, Property,
-    CrmAccount, CrmAsset, CrmCase, CrmContact, CrmInvoice, CrmJobProject, CrmQuote, CrmServiceCategory, CrmTask, CrmTerritory, CrmLocation, CrmPipelineConfig, CrmActivity
+    CrmAccount, CrmAsset, CrmCase, CrmContact, CrmInvoice, CrmJobProject, CrmQuote, CrmServiceCategory, CrmTask, CrmTerritory, CrmLocation, CrmPipelineConfig, CrmActivity, ServiceCategory
 } from '../types';
 
 // Define the shape of each slice
@@ -148,6 +148,14 @@ export interface CrmSlice {
     updateCrmActivity: (activityId: string, updates: Partial<CrmActivity>) => void;
 }
 
+export interface CategorySlice {
+    categoryLibrary: ServiceCategory[];
+    addCategory: (category: ServiceCategory) => void;
+    updateCategory: (category: ServiceCategory) => void;
+    approveCategory: (categoryId: string, reviewerId?: string) => void;
+    rejectCategory: (categoryId: string, reviewerId?: string) => void;
+}
+
 export interface UiSlice {
     theme: 'light' | 'dark';
     toggleTheme: () => void;
@@ -169,6 +177,6 @@ export interface DataSlice {
 }
 
 // Combine all slices
-export type AppState = AuthSlice & JobSlice & ClientSlice & FinanceSlice & InventorySlice & MarketingSlice & CommunicationSlice & CrmSlice & UiSlice & DataSlice;
+export type AppState = AuthSlice & JobSlice & ClientSlice & FinanceSlice & InventorySlice & MarketingSlice & CommunicationSlice & CrmSlice & CategorySlice & UiSlice & DataSlice;
 
 export type StoreSlice<T> = StateCreator<AppState, [], [], T>;

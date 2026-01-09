@@ -770,6 +770,23 @@ export interface CrmActivity {
   consent?: CrmConsentRecord;
 }
 
+export type CategoryApprovalStatus = 'APPROVED' | 'PENDING' | 'REJECTED';
+
+export interface ServiceCategory {
+  id: string;
+  name: string;
+  industryId: string;
+  description?: string;
+  tags: string[];
+  synonyms: string[];
+  skillRequirements: string[];
+  requiredDocuments: string[];
+  status: CategoryApprovalStatus;
+  requestedBy?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+}
+
 // ==============================================
 // MARKETING & ADS INTELLIGENCE TYPES
 // ==============================================
