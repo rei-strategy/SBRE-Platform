@@ -2,7 +2,7 @@ import React, { useRef, useState, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Job, JobStatus, Client, Invoice, InvoiceStatus, Payment, InvoiceMilestone } from '../types';
 import { Button } from '../components/Button';
-import { CheckCircle, Camera, Clock, Calendar, ArrowLeft, AlertCircle, DollarSign, Repeat } from 'lucide-react';
+import { CheckCircle, Camera, Clock, Calendar, ArrowLeft, AlertCircle, DollarSign, Repeat, MapPin } from 'lucide-react';
 import { StoreContext } from '../store';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 
@@ -231,7 +231,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({ jobs, clients, onUpdateSta
               </Button>
             )}
             <Button variant="outline" onClick={handleShareTracking} className="flex items-center gap-2">
-              <Car className="w-4 h-4" /> Share Tracking
+              <MapPin className="w-4 h-4" /> Share Tracking
             </Button>
             <Button variant="outline" onClick={() => {
               // Auto-assign if unassigned
