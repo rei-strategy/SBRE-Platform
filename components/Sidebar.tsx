@@ -142,7 +142,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onSwitchUser, isCollapse
         ) : (
           <>
             <div className={`transition-all duration-300 flex items-center justify-center ${isCollapsed ? 'w-16 opacity-100' : 'w-44 opacity-100'}`}>
-              <img src="/sbre-logo.png" alt="SBRE platform logo" className="max-w-[11rem] max-h-14 object-contain" />
+              {isCollapsed ? (
+                <>
+                  <img src="/branding/logo/sbre-mark.svg" alt="SBRE platform logo" className="h-10 w-10 object-contain dark:hidden" />
+                  <img src="/branding/logo/sbre-mark-light.svg" alt="SBRE platform logo" className="h-10 w-10 object-contain hidden dark:block" />
+                </>
+              ) : (
+                <>
+                  <img src="/branding/logo/sbre-logo.svg" alt="SBRE platform logo" className="max-w-[11rem] max-h-14 object-contain dark:hidden" />
+                  <img src="/branding/logo/sbre-logo-light.svg" alt="SBRE platform logo" className="max-w-[11rem] max-h-14 object-contain hidden dark:block" />
+                </>
+              )}
             </div>
             <button onClick={toggleCollapse} className="absolute -right-3 top-8 p-1 rounded-full shadow-lg transition-transform hover:scale-110 active:scale-95 z-50 border bg-white text-slate-500 border-slate-200 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 dark:hover:text-white">{isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}</button>
           </>

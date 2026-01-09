@@ -66,7 +66,6 @@ import { GrowthPlanGenerator } from './pages/research/GrowthPlanGenerator';
 import { UserRole } from './types';
 import { NewUserOnboarding } from './pages/NewUserOnboarding';
 
-const LOGO_SRC = '/sbre-logo.png';
 const LOGO_ALT = 'SBRE platform logo';
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -114,7 +113,8 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md z-30 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800 transition-all print:hidden">
           <div className="flex items-center justify-center">
             <div className="h-11 w-auto flex items-center justify-center">
-              <img src={LOGO_SRC} alt={LOGO_ALT} className="h-full w-auto object-contain" />
+              <img src="/branding/logo/sbre-logo.svg" alt={LOGO_ALT} className="h-full w-auto object-contain dark:hidden" />
+              <img src="/branding/logo/sbre-logo-light.svg" alt={LOGO_ALT} className="h-full w-auto object-contain hidden dark:block" />
             </div>
           </div>
 

@@ -375,7 +375,8 @@ export const LandingPage: React.FC<LandingPageProps> = () => {
           <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center justify-center">
                  <div className="h-10 w-auto flex items-center justify-center">
-                    <img src="/sbre-logo.png" alt="SBRE platform logo" className="h-9 w-auto object-contain" />
+                    <img src="/branding/logo/sbre-logo.svg" alt="SBRE platform logo" className="h-9 w-auto object-contain dark:hidden" />
+                    <img src="/branding/logo/sbre-logo-light.svg" alt="SBRE platform logo" className="h-9 w-auto object-contain hidden dark:block" />
                  </div>
               </div>
               <div className="text-sm text-slate-500">

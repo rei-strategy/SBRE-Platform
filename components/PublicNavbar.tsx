@@ -14,7 +14,8 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ onOpenAuth }) => {
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group">
           <div className="h-11 w-auto flex items-center justify-center">
-            <img src="/sbre-logo.png" alt="SBRE platform logo" className="h-full w-auto object-contain" />
+            <img src="/branding/logo/sbre-logo.svg" alt="SBRE platform logo" className="h-full w-auto object-contain dark:hidden" />
+            <img src="/branding/logo/sbre-logo-light.svg" alt="SBRE platform logo" className="h-full w-auto object-contain hidden dark:block" />
           </div>
         </Link>
         
