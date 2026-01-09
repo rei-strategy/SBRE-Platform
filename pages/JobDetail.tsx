@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useRef, useState, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Job, JobStatus, Client } from '../types';
 import { Button } from '../components/Button';
@@ -18,10 +18,12 @@ export const JobDetail: React.FC<JobDetailProps> = ({ jobs, clients, onUpdateSta
   const job = jobs.find((j) => j.id === id);
   const client = clients.find((c) => c.id === job?.clientId);
   const [activeTab, setActiveTab] = useState<'overview' | 'checklist' | 'photos'>('overview');
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   if (!job || !client) return <div>Job not found</div>;
 
   const property = client.properties.find(p => p.id === job.propertyId);
+  const assignedTechs = store?.users.filter((u) => job.assignedTechIds.includes(u.id)) || [];
 
   const handleStartJob = () => {
     // Auto-assign if unassigned (e.g. Admin taking over)
@@ -36,6 +38,14 @@ export const JobDetail: React.FC<JobDetailProps> = ({ jobs, clients, onUpdateSta
   };
 
   const handleCompleteJob = () => {
+    if (job.checklists.some((item) => !item.isCompleted)) {
+      alert('Please complete all checklist items before finishing the job.');
+      return;
+    }
+    if (job.photos.length === 0) {
+      alert('Please upload completion evidence before finishing the job.');
+      return;
+    }
     // 1. Update Status
     onUpdateStatus(job.id, JobStatus.COMPLETED);
     // 2. Auto Clock Out (Feature Request)
@@ -204,6 +214,26 @@ export const JobDetail: React.FC<JobDetailProps> = ({ jobs, clients, onUpdateSta
               )}
             </section>
 
+            <section className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Work Order</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <div className="text-xs uppercase text-slate-500">Work Order ID</div>
+                  <div className="font-semibold text-slate-900">#{job.id.slice(0, 8).toUpperCase()}</div>
+                </div>
+                <div>
+                  <div className="text-xs uppercase text-slate-500">Assigned</div>
+                  <div className="font-semibold text-slate-900">
+                    {assignedTechs.length > 0 ? assignedTechs.map((tech) => tech.name).join(', ') : 'Unassigned'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs uppercase text-slate-500">Stage</div>
+                  <div className="font-semibold text-slate-900">{job.pipelineStage || 'LEAD'}</div>
+                </div>
+              </div>
+            </section>
+
             {/* PROFITABILITY SECTION (New) */}
             <section>
               <div className="flex items-center justify-between mb-4">
@@ -304,7 +334,13 @@ export const JobDetail: React.FC<JobDetailProps> = ({ jobs, clients, onUpdateSta
                 </div>
                 <input
                   type="checkbox"
-                  defaultChecked={item.isCompleted}
+                  checked={item.isCompleted}
+                  onChange={(e) => {
+                    const updated = job.checklists.map((entry) =>
+                      entry.id === item.id ? { ...entry, isCompleted: e.target.checked } : entry
+                    );
+                    store?.updateJob({ ...job, checklists: updated });
+                  }}
                   className="hidden"
                 />
                 <span className={`font-medium ${item.isCompleted ? 'text-emerald-900' : 'text-slate-700'}`}>{item.label}</span>
@@ -329,6 +365,35 @@ export const JobDetail: React.FC<JobDetailProps> = ({ jobs, clients, onUpdateSta
                   Tag at least one photo as "Before" and one as "After" to enable the slider.
                 </div>
               )}
+            </div>
+
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h4 className="text-sm font-semibold text-slate-800">Completion Evidence</h4>
+                <p className="text-xs text-slate-500">Upload photos or documents that prove completion.</p>
+              </div>
+              <div>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const url = URL.createObjectURL(file);
+                    const updatedPhotos = [
+                      ...job.photos,
+                      { id: crypto.randomUUID(), url, uploadedAt: new Date().toISOString(), type: 'GENERAL' as const }
+                    ];
+                    store?.updateJob({ ...job, photos: updatedPhotos });
+                    e.currentTarget.value = '';
+                  }}
+                />
+                <Button size="sm" variant="outline" onClick={() => photoInputRef.current?.click()}>
+                  Upload evidence
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -366,7 +431,10 @@ export const JobDetail: React.FC<JobDetailProps> = ({ jobs, clients, onUpdateSta
                   )}
                 </div>
               ))}
-              <button className="aspect-square rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all gap-2">
+              <button
+                className="aspect-square rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all gap-2"
+                onClick={() => photoInputRef.current?.click()}
+              >
                 <Camera className="w-8 h-8" />
                 <span className="text-sm font-medium">Add Photo</span>
               </button>

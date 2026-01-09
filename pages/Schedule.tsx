@@ -72,14 +72,26 @@ export const Schedule: React.FC<ScheduleProps> = ({ jobs, users }) => {
     const [showMobileViewOptions, setShowMobileViewOptions] = useState(false);
 
     const technicians = users.filter((u) => u.role === 'TECHNICIAN');
+    const [techAvailability, setTechAvailability] = useState<Record<string, boolean>>({});
 
     // FILTERS
     const [hiddenTechIds, setHiddenTechIds] = useState<string[]>([]);
 
     // Filter logic
     const displayedTechnicians = useMemo(() => {
-        return technicians.filter(t => !hiddenTechIds.includes(t.id));
-    }, [technicians, hiddenTechIds]);
+        return technicians.filter(t => !hiddenTechIds.includes(t.id) && techAvailability[t.id] !== false);
+    }, [technicians, hiddenTechIds, techAvailability]);
+
+    useEffect(() => {
+        if (technicians.length === 0) return;
+        setTechAvailability((prev) => {
+            const next: Record<string, boolean> = { ...prev };
+            technicians.forEach((tech) => {
+                if (next[tech.id] === undefined) next[tech.id] = true;
+            });
+            return next;
+        });
+    }, [technicians]);
 
     const filteredJobs = useMemo(() => {
         // If all techs are hidden, show no assigned jobs? Or show all? Usually show selected.
@@ -188,6 +200,25 @@ export const Schedule: React.FC<ScheduleProps> = ({ jobs, users }) => {
     const handleJobClick = (job: Job, e: React.MouseEvent) => {
         e.stopPropagation();
         navigate(`/jobs/${job.id}`);
+    };
+
+    const handleOptimizeRoutes = () => {
+        const assignedJobs = filteredJobs.filter((job) => job.assignedTechIds.length > 0);
+        const message = `Route optimization queued for ${assignedJobs.length} assigned jobs.`;
+        if (store?.addNotification && currentUser?.id) {
+            store.addNotification({
+                id: crypto.randomUUID(),
+                userId: currentUser.id,
+                title: 'Route optimization queued',
+                message,
+                timestamp: new Date().toISOString(),
+                read: false,
+                type: 'INFO',
+                link: '/schedule'
+            });
+        } else {
+            alert(message);
+        }
     };
 
     const handleDragStart = (e: React.DragEvent, job: Job) => {
@@ -449,6 +480,41 @@ export const Schedule: React.FC<ScheduleProps> = ({ jobs, users }) => {
                         />
                     }
                 />
+
+                <div className="mb-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Vendor Availability</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Toggle availability to update scheduling capacity.</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {technicians.map((tech) => (
+                            <button
+                                key={tech.id}
+                                onClick={() =>
+                                    setTechAvailability((prev) => ({
+                                        ...prev,
+                                        [tech.id]: !prev[tech.id]
+                                    }))
+                                }
+                                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                                    techAvailability[tech.id] === false
+                                        ? 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-700 dark:text-slate-400'
+                                        : 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300'
+                                }`}
+                            >
+                                {tech.name}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button size="sm" variant="outline" onClick={() => setTechAvailability({})}>
+                            Reset Availability
+                        </Button>
+                        <Button size="sm" onClick={handleOptimizeRoutes}>
+                            Optimize Routes
+                        </Button>
+                    </div>
+                </div>
 
                 <div className="flex gap-6 flex-1 min-h-0">
                     <div className={`flex-1 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col relative transition-all duration-300`}>
