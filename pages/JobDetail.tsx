@@ -1,8 +1,8 @@
 import React, { useRef, useState, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Job, JobStatus, Client } from '../types';
+import { Job, JobStatus, Client, Invoice, InvoiceStatus, Payment, InvoiceMilestone } from '../types';
 import { Button } from '../components/Button';
-import { CheckCircle, Camera, Clock, Calendar, ArrowLeft, AlertCircle, Car, DollarSign, Repeat } from 'lucide-react';
+import { CheckCircle, Camera, Clock, Calendar, ArrowLeft, AlertCircle, DollarSign, Repeat } from 'lucide-react';
 import { StoreContext } from '../store';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 
@@ -24,6 +24,9 @@ export const JobDetail: React.FC<JobDetailProps> = ({ jobs, clients, onUpdateSta
 
   const property = client.properties.find(p => p.id === job.propertyId);
   const assignedTechs = store?.users.filter((u) => job.assignedTechIds.includes(u.id)) || [];
+  const invoices = store?.invoices || [];
+  const settings = store?.settings;
+  const jobInvoice = invoices.find((invoice) => invoice.jobId === job.id);
 
   const handleStartJob = () => {
     // Auto-assign if unassigned (e.g. Admin taking over)
@@ -59,6 +62,117 @@ export const JobDetail: React.FC<JobDetailProps> = ({ jobs, clients, onUpdateSta
       navigator.clipboard.writeText(url);
       alert('Tracking link copied to clipboard!');
     }
+  };
+
+  const calculateSubtotal = () => job.items.reduce((sum, item) => sum + item.total, 0);
+  const calculateTax = (subtotal: number) => {
+    const rate = settings?.taxRate ?? 0;
+    return subtotal * rate;
+  };
+
+  const buildMilestones = (total: number): InvoiceMilestone[] => {
+    if (total <= 0) return [];
+    return [
+      { id: crypto.randomUUID(), label: 'Deposit', amount: Math.round(total * 0.3), status: 'PENDING' },
+      { id: crypto.randomUUID(), label: 'Midpoint', amount: Math.round(total * 0.4), status: 'PENDING' },
+      { id: crypto.randomUUID(), label: 'Final', amount: Math.max(total - Math.round(total * 0.7), 0), status: 'PENDING' },
+    ];
+  };
+
+  const handleCreateInvoice = () => {
+    if (!store?.createInvoice) return;
+    const subtotal = calculateSubtotal();
+    const tax = calculateTax(subtotal);
+    const total = subtotal + tax;
+    const invoice: Invoice = {
+      id: crypto.randomUUID(),
+      clientId: client.id,
+      jobId: job.id,
+      items: job.items.length > 0 ? job.items : [{
+        id: crypto.randomUUID(),
+        description: job.title,
+        quantity: 1,
+        unitPrice: total,
+        total
+      }],
+      subtotal,
+      tax,
+      total,
+      balanceDue: total,
+      status: InvoiceStatus.SENT,
+      dueDate: new Date().toISOString(),
+      issuedDate: new Date().toISOString(),
+      payments: [],
+      taxRate: settings?.taxRate,
+      taxLabel: settings?.taxName,
+      milestones: buildMilestones(total)
+    };
+    store.createInvoice(invoice);
+  };
+
+  const handleCollectPayment = () => {
+    if (!store?.updateInvoice || !jobInvoice) return;
+    const amountInput = window.prompt('Payment amount', jobInvoice.balanceDue.toString());
+    const amount = Number(amountInput);
+    if (!amount || Number.isNaN(amount)) return;
+
+    const payment: Payment = {
+      id: crypto.randomUUID(),
+      invoiceId: jobInvoice.id,
+      amount,
+      method: 'TRANSFER',
+      date: new Date().toISOString()
+    };
+
+    const nextBalance = Math.max(jobInvoice.balanceDue - amount, 0);
+    const nextStatus = nextBalance === 0 ? InvoiceStatus.PAID : jobInvoice.status;
+    const receiptId = nextStatus === InvoiceStatus.PAID
+      ? jobInvoice.receiptId || `RCT-${jobInvoice.id.slice(0, 6).toUpperCase()}`
+      : jobInvoice.receiptId;
+
+    store.updateInvoice({
+      ...jobInvoice,
+      balanceDue: nextBalance,
+      status: nextStatus,
+      payments: [...jobInvoice.payments, payment],
+      receiptId
+    });
+  };
+
+  const handleMilestoneUpdate = (milestoneId: string, nextStatus: 'FUNDED' | 'RELEASED') => {
+    if (!store?.updateInvoice || !jobInvoice || !jobInvoice.milestones) return;
+    const updatedMilestones = jobInvoice.milestones.map((milestone) =>
+      milestone.id === milestoneId ? { ...milestone, status: nextStatus } : milestone
+    );
+
+    let nextInvoice = { ...jobInvoice, milestones: updatedMilestones };
+
+    if (nextStatus === 'RELEASED') {
+      const milestone = jobInvoice.milestones.find((m) => m.id === milestoneId);
+      if (milestone) {
+        const payment: Payment = {
+          id: crypto.randomUUID(),
+          invoiceId: jobInvoice.id,
+          amount: milestone.amount,
+          method: 'TRANSFER',
+          date: new Date().toISOString()
+        };
+        const nextBalance = Math.max(jobInvoice.balanceDue - milestone.amount, 0);
+        const nextStatus = nextBalance === 0 ? InvoiceStatus.PAID : jobInvoice.status;
+        const receiptId = nextStatus === InvoiceStatus.PAID
+          ? jobInvoice.receiptId || `RCT-${jobInvoice.id.slice(0, 6).toUpperCase()}`
+          : jobInvoice.receiptId;
+        nextInvoice = {
+          ...nextInvoice,
+          balanceDue: nextBalance,
+          status: nextStatus,
+          payments: [...jobInvoice.payments, payment],
+          receiptId
+        };
+      }
+    }
+
+    store.updateInvoice(nextInvoice);
   };
 
   const getStatusBadge = (status: JobStatus) => {
@@ -175,31 +289,23 @@ export const JobDetail: React.FC<JobDetailProps> = ({ jobs, clients, onUpdateSta
 
         {activeTab === 'overview' && (
           <div className="space-y-8">
-            {job.vehicleDetails && (
-              <section className="bg-blue-50/50 p-5 rounded-xl border border-blue-100">
-                <h3 className="text-sm font-bold text-blue-800 uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <Car className="w-4 h-4" /> Vehicle Information
-                </h3>
-                <div className="flex gap-8">
-                  <div>
-                    <span className="text-xs text-slate-500 uppercase">Year</span>
-                    <p className="font-bold text-slate-900">{job.vehicleDetails.year}</p>
-                  </div>
-                  <div>
-                    <span className="text-xs text-slate-500 uppercase">Make</span>
-                    <p className="font-bold text-slate-900">{job.vehicleDetails.make}</p>
-                  </div>
-                  <div>
-                    <span className="text-xs text-slate-500 uppercase">Model</span>
-                    <p className="font-bold text-slate-900">{job.vehicleDetails.model}</p>
-                  </div>
-                  <div>
-                    <span className="text-xs text-slate-500 uppercase">Color</span>
-                    <p className="font-bold text-slate-900">{job.vehicleDetails.color}</p>
-                  </div>
+            <section className="bg-slate-50 p-5 rounded-xl border border-slate-200">
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3">Service Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="text-xs text-slate-500 uppercase">Scope Notes</span>
+                  <p className="font-semibold text-slate-900">{job.notes || '—'}</p>
                 </div>
-              </section>
-            )}
+                <div>
+                  <span className="text-xs text-slate-500 uppercase">Priority</span>
+                  <p className="font-semibold text-slate-900">{job.priority}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-500 uppercase">Checklist Items</span>
+                  <p className="font-semibold text-slate-900">{job.checklists.length}</p>
+                </div>
+              </div>
+            </section>
 
             <section>
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Description</h3>
@@ -321,6 +427,91 @@ export const JobDetail: React.FC<JobDetailProps> = ({ jobs, clients, onUpdateSta
                   </tbody>
                 </table>
               </div>
+            </section>
+
+            <section className="rounded-xl border border-slate-200 bg-white p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Payments & Invoicing</h3>
+                  <p className="text-xs text-slate-500">Collect payments, apply taxes, and issue receipts.</p>
+                </div>
+                {!jobInvoice && (
+                  <Button size="sm" onClick={handleCreateInvoice}>Create Invoice</Button>
+                )}
+              </div>
+
+              {jobInvoice ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <div className="text-xs text-slate-500 uppercase">Invoice</div>
+                      <div className="font-semibold text-slate-900">#{jobInvoice.id.slice(0, 6).toUpperCase()}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 uppercase">Total</div>
+                      <div className="font-semibold text-slate-900">${jobInvoice.total.toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 uppercase">Balance</div>
+                      <div className="font-semibold text-slate-900">${jobInvoice.balanceDue.toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-500 uppercase">Tax</div>
+                      <div className="font-semibold text-slate-900">
+                        {jobInvoice.taxLabel || 'Tax'} ({((jobInvoice.taxRate ?? settings?.taxRate ?? 0) * 100).toFixed(1)}%)
+                      </div>
+                    </div>
+                  </div>
+
+                  {jobInvoice.receiptId && (
+                    <div className="text-xs text-slate-500">
+                      Receipt: <span className="font-semibold text-slate-700">{jobInvoice.receiptId}</span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" onClick={handleCollectPayment}>Collect Payment</Button>
+                    <Button size="sm" variant="outline">Send Receipt</Button>
+                  </div>
+
+                  {jobInvoice.milestones && jobInvoice.milestones.length > 0 && (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                      <div className="text-xs font-bold uppercase text-slate-500 mb-3">Escrow / Milestones</div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {jobInvoice.milestones.map((milestone) => (
+                          <div key={milestone.id} className="rounded-lg border border-slate-200 bg-white p-3 space-y-2 text-sm">
+                            <div className="font-semibold text-slate-900">{milestone.label}</div>
+                            <div className="text-xs text-slate-500">${milestone.amount.toFixed(2)}</div>
+                            <div className={`text-[10px] font-bold uppercase ${
+                              milestone.status === 'RELEASED'
+                                ? 'text-emerald-600'
+                                : milestone.status === 'FUNDED'
+                                ? 'text-amber-600'
+                                : 'text-slate-500'
+                            }`}>
+                              {milestone.status}
+                            </div>
+                            <div className="flex gap-2">
+                              {milestone.status === 'PENDING' && (
+                                <Button size="sm" variant="outline" onClick={() => handleMilestoneUpdate(milestone.id, 'FUNDED')}>
+                                  Fund
+                                </Button>
+                              )}
+                              {milestone.status === 'FUNDED' && (
+                                <Button size="sm" onClick={() => handleMilestoneUpdate(milestone.id, 'RELEASED')}>
+                                  Release
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-sm text-slate-500">No invoice yet. Create one to start collecting payment.</div>
+              )}
             </section>
           </div>
         )}

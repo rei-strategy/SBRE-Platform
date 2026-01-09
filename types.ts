@@ -543,6 +543,28 @@ export interface Invoice {
   dueDate: string;
   issuedDate: string;
   payments: Payment[];
+  taxRate?: number;
+  taxLabel?: string;
+  receiptId?: string;
+  milestones?: InvoiceMilestone[];
+}
+
+export type MilestoneStatus = 'PENDING' | 'FUNDED' | 'RELEASED';
+
+export interface InvoiceMilestone {
+  id: string;
+  label: string;
+  amount: number;
+  status: MilestoneStatus;
+  dueDate?: string;
+}
+
+export interface RoutePlan {
+  techId: string;
+  date: string;
+  jobIds: string[];
+  totalDistanceKm?: number;
+  generatedAt: string;
 }
 
 // ==============================================

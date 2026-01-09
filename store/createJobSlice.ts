@@ -1,11 +1,13 @@
 import { StoreSlice } from './types';
 import { supabase } from '../supabaseClient';
 import { Job, JobStatus, UserRole, TimeEntry, TimeEntryType, TimeEntryStatus, JobTemplate, PipelineStage } from '../types';
-import { differenceInMinutes, differenceInHours, parseISO } from 'date-fns';
+import { differenceInMinutes, differenceInHours, parseISO, isSameDay } from 'date-fns';
 
 export const createJobSlice: StoreSlice<any> = (set, get) => ({
     jobs: [],
     timeEntries: [],
+    techAvailability: {},
+    routePlans: [],
 
     addJob: async (job: Job) => {
         const { currentUser } = get();
@@ -172,6 +174,95 @@ export const createJobSlice: StoreSlice<any> = (set, get) => ({
                 const job = get().jobs.find(j => j.id === id);
                 if (job) get().triggerAutomation('JOB_COMPLETED', id, { job });
             }
+        }
+    },
+
+    setTechAvailability: (techId: string, available: boolean) => {
+        set((state) => ({
+            techAvailability: { ...state.techAvailability, [techId]: available }
+        }));
+    },
+
+    resetTechAvailability: () => {
+        set({ techAvailability: {} });
+    },
+
+    optimizeRoutes: (date: Date) => {
+        const { jobs, clients, users, addNotification, currentUser } = get();
+        const plans = users
+            .filter((user) => user.role === UserRole.TECHNICIAN)
+            .map((tech) => {
+                const techJobs = jobs.filter((job) => {
+                    if (!job.assignedTechIds.includes(tech.id)) return false;
+                    if (!job.start) return false;
+                    return isSameDay(new Date(job.start), date);
+                });
+
+                if (techJobs.length === 0) return null;
+
+                const getCoords = (job: Job) => {
+                    const client = clients.find((c) => c.id === job.clientId);
+                    const property = client?.properties.find((p) => p.id === job.propertyId);
+                    if (!property?.address.lat || !property?.address.lng) return null;
+                    return { lat: property.address.lat, lng: property.address.lng };
+                };
+
+                const remaining = [...techJobs];
+                const ordered: Job[] = [];
+                let totalDistance = 0;
+
+                const seed = remaining.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())[0];
+                ordered.push(seed);
+                remaining.splice(remaining.indexOf(seed), 1);
+
+                while (remaining.length > 0) {
+                    const last = ordered[ordered.length - 1];
+                    const lastCoords = getCoords(last);
+                    if (!lastCoords) {
+                        ordered.push(...remaining.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()));
+                        break;
+                    }
+
+                    let closestIndex = 0;
+                    let closestDistance = Infinity;
+                    remaining.forEach((job, index) => {
+                        const coords = getCoords(job);
+                        if (!coords) return;
+                        const distance = Math.hypot(coords.lat - lastCoords.lat, coords.lng - lastCoords.lng);
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closestIndex = index;
+                        }
+                    });
+
+                    const nextJob = remaining.splice(closestIndex, 1)[0];
+                    if (closestDistance !== Infinity) totalDistance += closestDistance * 111; // rough km conversion
+                    ordered.push(nextJob);
+                }
+
+                return {
+                    techId: tech.id,
+                    date: date.toISOString(),
+                    jobIds: ordered.map((job) => job.id),
+                    totalDistanceKm: Math.round(totalDistance),
+                    generatedAt: new Date().toISOString(),
+                };
+            })
+            .filter(Boolean);
+
+        set({ routePlans: plans });
+
+        if (currentUser?.id && addNotification) {
+            addNotification({
+                id: crypto.randomUUID(),
+                userId: currentUser.id,
+                title: 'Route optimization complete',
+                message: `Optimized ${plans.length} technician routes for ${date.toLocaleDateString()}.`,
+                timestamp: new Date().toISOString(),
+                read: false,
+                link: '/schedule',
+                type: 'SUCCESS'
+            });
         }
     },
 

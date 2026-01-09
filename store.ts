@@ -44,6 +44,8 @@ export const useZustandStore = create<AppState>()(
                 crmPipelineConfigs: state.crmPipelineConfigs,
                 crmActivities: state.crmActivities,
                 categoryLibrary: state.categoryLibrary,
+                techAvailability: state.techAvailability,
+                routePlans: state.routePlans,
                 settings: state.settings, // Often good to persist settings too
             }),
         }

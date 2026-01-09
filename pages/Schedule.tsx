@@ -72,7 +72,7 @@ export const Schedule: React.FC<ScheduleProps> = ({ jobs, users }) => {
     const [showMobileViewOptions, setShowMobileViewOptions] = useState(false);
 
     const technicians = users.filter((u) => u.role === 'TECHNICIAN');
-    const [techAvailability, setTechAvailability] = useState<Record<string, boolean>>({});
+    const techAvailability = store?.techAvailability || {};
 
     // FILTERS
     const [hiddenTechIds, setHiddenTechIds] = useState<string[]>([]);
@@ -81,17 +81,6 @@ export const Schedule: React.FC<ScheduleProps> = ({ jobs, users }) => {
     const displayedTechnicians = useMemo(() => {
         return technicians.filter(t => !hiddenTechIds.includes(t.id) && techAvailability[t.id] !== false);
     }, [technicians, hiddenTechIds, techAvailability]);
-
-    useEffect(() => {
-        if (technicians.length === 0) return;
-        setTechAvailability((prev) => {
-            const next: Record<string, boolean> = { ...prev };
-            technicians.forEach((tech) => {
-                if (next[tech.id] === undefined) next[tech.id] = true;
-            });
-            return next;
-        });
-    }, [technicians]);
 
     const filteredJobs = useMemo(() => {
         // If all techs are hidden, show no assigned jobs? Or show all? Usually show selected.
@@ -203,22 +192,7 @@ export const Schedule: React.FC<ScheduleProps> = ({ jobs, users }) => {
     };
 
     const handleOptimizeRoutes = () => {
-        const assignedJobs = filteredJobs.filter((job) => job.assignedTechIds.length > 0);
-        const message = `Route optimization queued for ${assignedJobs.length} assigned jobs.`;
-        if (store?.addNotification && currentUser?.id) {
-            store.addNotification({
-                id: crypto.randomUUID(),
-                userId: currentUser.id,
-                title: 'Route optimization queued',
-                message,
-                timestamp: new Date().toISOString(),
-                read: false,
-                type: 'INFO',
-                link: '/schedule'
-            });
-        } else {
-            alert(message);
-        }
+        store?.optimizeRoutes?.(currentDate);
     };
 
     const handleDragStart = (e: React.DragEvent, job: Job) => {
@@ -490,12 +464,7 @@ export const Schedule: React.FC<ScheduleProps> = ({ jobs, users }) => {
                         {technicians.map((tech) => (
                             <button
                                 key={tech.id}
-                                onClick={() =>
-                                    setTechAvailability((prev) => ({
-                                        ...prev,
-                                        [tech.id]: !prev[tech.id]
-                                    }))
-                                }
+                                onClick={() => store?.setTechAvailability?.(tech.id, techAvailability[tech.id] === false)}
                                 className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
                                     techAvailability[tech.id] === false
                                         ? 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-700 dark:text-slate-400'
@@ -507,7 +476,7 @@ export const Schedule: React.FC<ScheduleProps> = ({ jobs, users }) => {
                         ))}
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline" onClick={() => setTechAvailability({})}>
+                        <Button size="sm" variant="outline" onClick={() => store?.resetTechAvailability?.()}>
                             Reset Availability
                         </Button>
                         <Button size="sm" onClick={handleOptimizeRoutes}>
@@ -515,6 +484,27 @@ export const Schedule: React.FC<ScheduleProps> = ({ jobs, users }) => {
                         </Button>
                     </div>
                 </div>
+
+                {store?.routePlans && store.routePlans.length > 0 && (
+                    <div className="mb-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2">Route Plans</h4>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 text-sm">
+                            {store.routePlans
+                                .filter((plan) => isSameDay(new Date(plan.date), currentDate))
+                                .map((plan) => {
+                                const tech = technicians.find((t) => t.id === plan.techId);
+                                return (
+                                    <div key={plan.techId} className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+                                        <div className="font-semibold text-slate-900 dark:text-white">{tech?.name || 'Technician'}</div>
+                                        <div className="text-xs text-slate-500 dark:text-slate-400">
+                                            Stops: {plan.jobIds.length} • Distance: {plan.totalDistanceKm ?? '—'} km
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex gap-6 flex-1 min-h-0">
                     <div className={`flex-1 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col relative transition-all duration-300`}>

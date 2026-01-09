@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import {
-    User, Job, Client, Quote, Invoice, ActivityLogItem,
+    User, Job, Client, Quote, Invoice, ActivityLogItem, RoutePlan,
     Notification, InventoryProduct, InventoryRecord,
     Warehouse, Vendor, PurchaseOrder, TimeEntry,
     EmailCampaign, MarketingAutomation, AudienceSegment,
@@ -45,6 +45,11 @@ export interface JobSlice {
     unscheduleJob: (jobId: string) => void;
     addJobTemplate: (template: JobTemplate) => void;
     checkSlaBreaches: () => void;
+    techAvailability: Record<string, boolean>;
+    setTechAvailability: (techId: string, available: boolean) => void;
+    resetTechAvailability: () => void;
+    routePlans: RoutePlan[];
+    optimizeRoutes: (date: Date) => void;
     // Time Entries often relate to jobs, but we can put them here or in a TimeSlice. 
     // Given the monolithic interdependencies, putting them here or separate is a choice.
     // Let's create a TimeSlice for them? Or just bundle with Jobs since technicians work on jobs.
