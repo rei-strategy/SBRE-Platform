@@ -498,9 +498,9 @@ export const CategoriesPage: React.FC = () => {
                 center={[selectedListing.lat, selectedListing.lng]}
                 radius={1800}
                 pathOptions={{
-                  color: '#2563eb',
+                  color: '#3266d3',
                   weight: 2,
-                  fillColor: '#60a5fa',
+                  fillColor: '#8eb7f5',
                   fillOpacity: 0.2,
                 }}
               />

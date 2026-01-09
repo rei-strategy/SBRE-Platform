@@ -10,7 +10,7 @@ import {
     Filter, Download, Calendar, Activity, Zap, Info, Layers, RefreshCw
 } from 'lucide-react';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'];
+const COLORS = ['#3266d3', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'];
 
 export const AttributionPage: React.FC = () => {
     const [loading, setLoading] = useState(true);

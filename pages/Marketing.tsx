@@ -210,8 +210,8 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns }) => {
                             <AreaChart data={chartData}>
                                 <defs>
                                     <linearGradient id="colorCampaigns" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
-                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="#3266d3" stopOpacity={0.1} />
+                                        <stop offset="95%" stopColor="#3266d3" stopOpacity={0} />
                                     </linearGradient>
                                     <linearGradient id="colorAutomations" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#a855f7" stopOpacity={0.1} />
@@ -239,7 +239,7 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns }) => {
                                     type="monotone"
                                     dataKey="campaigns"
                                     name="Campaign Emails"
-                                    stroke="#3b82f6"
+                                    stroke="#3266d3"
                                     strokeWidth={3}
                                     fillOpacity={1}
                                     fill="url(#colorCampaigns)"
@@ -341,4 +341,3 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns }) => {
         </div>
     );
 };
-

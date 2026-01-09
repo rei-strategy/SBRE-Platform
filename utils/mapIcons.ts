@@ -44,7 +44,7 @@ export const jobIcon = L.divIcon({
 // Dynamic Ordered Job Icon
 export const createOrderedJobIcon = (order: number, isFirst: boolean, isLast: boolean, status?: string, customColor?: string) => {
   let bgClass = 'bg-blue-600';
-  let borderHex = '#2563eb'; // blue-600
+  let borderHex = '#3266d3'; // brand blue
 
   if (customColor) {
     // If custom color is provided (e.g. for Heatmap), use inline styles for bg and border

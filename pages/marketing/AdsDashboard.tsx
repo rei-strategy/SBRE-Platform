@@ -286,8 +286,8 @@ export const AdsDashboard: React.FC = () => {
                                 <AreaChart data={trends}>
                                     <defs>
                                         <linearGradient id="colorSpend" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
-                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="#3266d3" stopOpacity={0.1} />
+                                            <stop offset="95%" stopColor="#3266d3" stopOpacity={0} />
                                         </linearGradient>
                                         <linearGradient id="colorConv" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
@@ -301,7 +301,7 @@ export const AdsDashboard: React.FC = () => {
                                     <RechartsTooltip
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                     />
-                                    <Area yAxisId="left" type="monotone" dataKey={keys.spend} stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorSpend)" name="Ad Spend" />
+                                    <Area yAxisId="left" type="monotone" dataKey={keys.spend} stroke="#3266d3" strokeWidth={3} fillOpacity={1} fill="url(#colorSpend)" name="Ad Spend" />
                                     <Area yAxisId="right" type="monotone" dataKey={keys.conv} stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorConv)" name="Conversions" />
                                 </AreaChart>
                             </ResponsiveContainer>

@@ -192,7 +192,7 @@ export const useReportsData = (jobs: Job[], invoices: Invoice[], users: User[], 
             categories[category]++;
         });
 
-        const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#6366f1', '#8b5cf6'];
+        const COLORS = ['#10b981', '#3266d3', '#f59e0b', '#6366f1', '#8b5cf6'];
 
         return Object.keys(categories).map((cat, index) => ({
             name: cat,

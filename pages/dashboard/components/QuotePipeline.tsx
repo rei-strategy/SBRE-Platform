@@ -11,7 +11,7 @@ export const QuotePipeline: React.FC = () => {
 
     const quoteStats = [
         { name: 'Draft', value: store.quotes.filter(q => q.status === QuoteStatus.DRAFT).length, color: '#94a3b8' },
-        { name: 'Sent', value: store.quotes.filter(q => q.status === QuoteStatus.SENT).length, color: '#3b82f6' },
+        { name: 'Sent', value: store.quotes.filter(q => q.status === QuoteStatus.SENT).length, color: '#3266d3' },
         { name: 'Approved', value: store.quotes.filter(q => q.status === QuoteStatus.APPROVED).length, color: '#10b981' },
     ];
 

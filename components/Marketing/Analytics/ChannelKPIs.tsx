@@ -28,7 +28,7 @@ export const ChannelKPIs: React.FC<Props> = ({ kpis }) => {
 
     const getColorHex = (colorName: string) => {
         const colors: Record<string, string> = {
-            blue: '#3b82f6',
+            blue: '#3266d3',
             green: '#10b981',
             red: '#ef4444',
             purple: '#8b5cf6',

@@ -5,7 +5,7 @@ export const MOCK_BRAND_KIT: BrandKit = {
     name: 'SBRE Global Default',
     logoUrl: 'https://cdn-icons-png.flaticon.com/512/2917/2917242.png', // Generic car icon
     colors: {
-        primary: '#2563EB', // Blue 600
+        primary: '#3266D3', // Brand blue
         secondary: '#1E293B', // Slate 800
         accent: '#F59E0B', // Amber 500
         background: '#FFFFFF'

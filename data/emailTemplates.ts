@@ -42,8 +42,8 @@ export const emailThemes: EmailTheme[] = [
     },
     {
         name: 'Modern Blue',
-        primaryColor: '#2563eb',
-        secondaryColor: '#3b82f6',
+        primaryColor: '#3266d3',
+        secondaryColor: '#8eb7f5',
         accentColor: '#1e40af',
         backgroundColor: '#eff6ff',
         cardBackgroundColor: '#ffffff',

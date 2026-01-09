@@ -16,7 +16,7 @@ const RouteLayer: React.FC<RouteLayerProps> = ({ routes }) => {
             {Object.entries(routes).map(([techId, positions]) => {
                 const isSelected = activeTechId === techId;
                 const opacity = activeTechId ? (isSelected ? 0.8 : 0.1) : 0.5;
-                const color = isSelected ? '#2563eb' : '#3b82f6';
+                const color = isSelected ? '#3266d3' : '#8eb7f5';
                 const weight = isSelected ? 4 : 3;
 
                 return (
