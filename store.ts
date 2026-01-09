@@ -46,6 +46,7 @@ export const useZustandStore = create<AppState>()(
                 categoryLibrary: state.categoryLibrary,
                 techAvailability: state.techAvailability,
                 routePlans: state.routePlans,
+                complianceAuditLogs: state.complianceAuditLogs,
                 settings: state.settings, // Often good to persist settings too
             }),
         }

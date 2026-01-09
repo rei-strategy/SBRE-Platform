@@ -223,6 +223,7 @@ export interface AppSettings {
   messageTemplates?: Record<string, string>;
   onboardingStep?: number;
   industry?: string;
+  regionalAccess?: string[];
 }
 
 export interface TeamInvitation {
@@ -758,6 +759,42 @@ export interface CrmCase {
   resolutionSteps?: CrmCaseResolutionStep[];
   auditTrail?: CrmCaseAuditEvent[];
   industryFields?: CrmIndustryFields;
+}
+
+export type CrmPermissionAction = 'VIEW' | 'EDIT' | 'EXPORT';
+export type CrmObject =
+  | 'ACCOUNT'
+  | 'CONTACT'
+  | 'LOCATION'
+  | 'ASSET'
+  | 'JOB'
+  | 'QUOTE'
+  | 'INVOICE'
+  | 'TASK'
+  | 'CASE';
+
+export interface CrmPermissionPolicy {
+  role: UserRole;
+  object: CrmObject;
+  actions: CrmPermissionAction[];
+}
+
+export interface CrmSegment {
+  id: string;
+  name: string;
+  territoryIds: string[];
+  description?: string;
+}
+
+export interface ComplianceAuditLog {
+  id: string;
+  actorId: string;
+  action: string;
+  entityType: CrmObject;
+  entityId: string;
+  timestamp: string;
+  detail?: string;
+  metadata?: Record<string, string | number | boolean>;
 }
 
 export type CrmPipelineTriggerAction =

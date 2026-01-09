@@ -13,7 +13,8 @@ const defaultSettings: AppSettings = {
     enableAutoInvoice: false,
     smsTemplateOnMyWay: "Hi {{clientName}}, this is {{techName}} from {{companyName}}. I'm on my way to your location!",
     onboardingStep: 1,
-    industry: ''
+    industry: '',
+    regionalAccess: []
 };
 
 export const createUiSlice: StoreSlice<any> = (set, get) => ({

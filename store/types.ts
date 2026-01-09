@@ -7,7 +7,7 @@ import {
     Chat, ChatMessage, AppSettings, JobTemplate, TeamInvitation,
     UserRole, JobStatus, InvoiceStatus, QuoteStatus, POStatus,
     TimeEntryStatus, LineItem, ChecklistItem, JobPhoto, AutomationTriggerType, ConditionGroup, AutomationCondition, TimeEntryType, Property,
-    CrmAccount, CrmAsset, CrmCase, CrmContact, CrmInvoice, CrmJobProject, CrmQuote, CrmServiceCategory, CrmTask, CrmTerritory, CrmLocation, CrmPipelineConfig, CrmActivity, ServiceCategory
+    CrmAccount, CrmAsset, CrmCase, CrmContact, CrmInvoice, CrmJobProject, CrmQuote, CrmServiceCategory, CrmTask, CrmTerritory, CrmLocation, CrmPipelineConfig, CrmActivity, ServiceCategory, CrmPermissionPolicy, CrmPermissionAction, CrmObject, CrmSegment, ComplianceAuditLog
 } from '../types';
 
 // Define the shape of each slice
@@ -147,10 +147,16 @@ export interface CrmSlice {
     crmCases: CrmCase[];
     crmPipelineConfigs: CrmPipelineConfig[];
     crmActivities: CrmActivity[];
+    crmPermissions: CrmPermissionPolicy[];
+    crmSegments: CrmSegment[];
+    complianceAuditLogs: ComplianceAuditLog[];
     addCrmPipelineConfig: (config: CrmPipelineConfig) => void;
     updateCrmPipelineConfig: (config: CrmPipelineConfig) => void;
     removeCrmPipelineConfig: (configId: string) => void;
     updateCrmActivity: (activityId: string, updates: Partial<CrmActivity>) => void;
+    updateCrmCase: (updatedCase: CrmCase) => void;
+    addComplianceAuditLog: (log: ComplianceAuditLog) => void;
+    canAccessCrmObject: (object: CrmObject, action: CrmPermissionAction) => boolean;
 }
 
 export interface CategorySlice {

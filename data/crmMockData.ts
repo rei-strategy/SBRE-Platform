@@ -12,6 +12,9 @@ import {
   CrmTerritory,
   CrmPipelineConfig,
   CrmActivity,
+  CrmPermissionPolicy,
+  CrmSegment,
+  ComplianceAuditLog,
 } from '../types';
 
 export const crmServiceCategories: CrmServiceCategory[] = [
@@ -468,4 +471,45 @@ export const crmActivities: CrmActivity[] = [
     detail: 'Uploaded 8 photos to turnover folder.',
     createdAt: '2025-01-11T13:00:00Z',
   },
+];
+
+export const crmPermissions: CrmPermissionPolicy[] = [
+  { role: 'ADMIN', object: 'CASE', actions: ['VIEW', 'EDIT', 'EXPORT'] },
+  { role: 'OFFICE', object: 'CASE', actions: ['VIEW', 'EDIT'] },
+  { role: 'TECHNICIAN', object: 'CASE', actions: ['VIEW'] },
+  { role: 'CLIENT', object: 'CASE', actions: ['VIEW'] },
+  { role: 'ADMIN', object: 'JOB', actions: ['VIEW', 'EDIT', 'EXPORT'] },
+  { role: 'OFFICE', object: 'JOB', actions: ['VIEW', 'EDIT'] },
+  { role: 'TECHNICIAN', object: 'JOB', actions: ['VIEW'] },
+  { role: 'CLIENT', object: 'JOB', actions: ['VIEW'] },
+  { role: 'ADMIN', object: 'INVOICE', actions: ['VIEW', 'EDIT', 'EXPORT'] },
+  { role: 'OFFICE', object: 'INVOICE', actions: ['VIEW', 'EDIT'] },
+  { role: 'CLIENT', object: 'INVOICE', actions: ['VIEW'] },
+];
+
+export const crmSegments: CrmSegment[] = [
+  {
+    id: 'seg-austin',
+    name: 'Austin Core',
+    territoryIds: ['terr-austin-core'],
+    description: 'Downtown and East Austin portfolio.'
+  },
+  {
+    id: 'seg-north',
+    name: 'North Austin',
+    territoryIds: ['terr-north-atx'],
+    description: 'Round Rock and Pflugerville sites.'
+  }
+];
+
+export const crmComplianceLogs: ComplianceAuditLog[] = [
+  {
+    id: 'audit-case-1',
+    actorId: 'user-ops-01',
+    action: 'Case created',
+    entityType: 'CASE',
+    entityId: 'case-5001',
+    timestamp: '2025-01-16T18:12:00Z',
+    detail: 'Initial dispute logged.'
+  }
 ];
