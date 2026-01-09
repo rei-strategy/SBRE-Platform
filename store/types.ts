@@ -7,7 +7,7 @@ import {
     Chat, ChatMessage, AppSettings, JobTemplate, TeamInvitation,
     UserRole, JobStatus, InvoiceStatus, QuoteStatus, POStatus,
     TimeEntryStatus, LineItem, ChecklistItem, JobPhoto, AutomationTriggerType, ConditionGroup, AutomationCondition, TimeEntryType, Property,
-    CrmAccount, CrmAsset, CrmCase, CrmContact, CrmInvoice, CrmJobProject, CrmQuote, CrmServiceCategory, CrmTask, CrmTerritory, CrmLocation
+    CrmAccount, CrmAsset, CrmCase, CrmContact, CrmInvoice, CrmJobProject, CrmQuote, CrmServiceCategory, CrmTask, CrmTerritory, CrmLocation, CrmPipelineConfig
 } from '../types';
 
 // Define the shape of each slice
@@ -139,6 +139,7 @@ export interface CrmSlice {
     crmInvoices: CrmInvoice[];
     crmTasks: CrmTask[];
     crmCases: CrmCase[];
+    crmPipelineConfigs: CrmPipelineConfig[];
 }
 
 export interface UiSlice {

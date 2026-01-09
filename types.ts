@@ -714,6 +714,35 @@ export interface CrmCase {
   industryFields?: CrmIndustryFields;
 }
 
+export type CrmPipelineTriggerAction =
+  | 'CREATE_QUOTE'
+  | 'CREATE_WORK_ORDER'
+  | 'SEND_REVIEW_REQUEST'
+  | 'ASSIGN_OWNER'
+  | 'SET_SLA_TIMER';
+
+export interface CrmPipelineTrigger {
+  id: string;
+  stageId: string;
+  action: CrmPipelineTriggerAction;
+  params?: Record<string, string | number | boolean>;
+}
+
+export interface CrmPipelineStage {
+  id: string;
+  name: string;
+  order: number;
+  slaHours?: number;
+  automationTriggers?: CrmPipelineTrigger[];
+}
+
+export interface CrmPipelineConfig {
+  id: string;
+  industryId: string;
+  name: string;
+  stages: CrmPipelineStage[];
+}
+
 // ==============================================
 // MARKETING & ADS INTELLIGENCE TYPES
 // ==============================================

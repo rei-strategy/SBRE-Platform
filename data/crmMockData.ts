@@ -10,6 +10,7 @@ import {
   CrmServiceCategory,
   CrmTask,
   CrmTerritory,
+  CrmPipelineConfig,
 } from '../types';
 
 export const crmServiceCategories: CrmServiceCategory[] = [
@@ -310,5 +311,64 @@ export const crmCases: CrmCase[] = [
     priority: 'MEDIUM',
     openedAt: '2025-01-16T18:10:00Z',
     tags: ['Turnover', 'Quality'],
+  },
+];
+
+export const crmPipelineConfigs: CrmPipelineConfig[] = [
+  {
+    id: 'pipeline-real-estate',
+    industryId: 'real-estate',
+    name: 'Real Estate Services',
+    stages: [
+      {
+        id: 'inquiry',
+        name: 'Inquiry',
+        order: 1,
+        slaHours: 2,
+        automationTriggers: [
+          { id: 'trigger-assign-owner', stageId: 'inquiry', action: 'ASSIGN_OWNER' },
+          { id: 'trigger-sla-inquiry', stageId: 'inquiry', action: 'SET_SLA_TIMER', params: { hours: 2 } },
+        ],
+      },
+      {
+        id: 'qualified',
+        name: 'Qualified',
+        order: 2,
+        slaHours: 24,
+        automationTriggers: [
+          { id: 'trigger-create-quote', stageId: 'qualified', action: 'CREATE_QUOTE' },
+        ],
+      },
+      {
+        id: 'quote',
+        name: 'Quote Sent',
+        order: 3,
+        slaHours: 48,
+      },
+      {
+        id: 'work-order',
+        name: 'Work Order',
+        order: 4,
+        slaHours: 72,
+        automationTriggers: [
+          { id: 'trigger-create-work-order', stageId: 'work-order', action: 'CREATE_WORK_ORDER' },
+        ],
+      },
+      {
+        id: 'completion',
+        name: 'Completion',
+        order: 5,
+        slaHours: 72,
+      },
+      {
+        id: 'review',
+        name: 'Review',
+        order: 6,
+        slaHours: 168,
+        automationTriggers: [
+          { id: 'trigger-review-request', stageId: 'review', action: 'SEND_REVIEW_REQUEST' },
+        ],
+      },
+    ],
   },
 ];

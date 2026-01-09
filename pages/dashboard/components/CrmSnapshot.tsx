@@ -1,5 +1,5 @@
 import React, { useContext, useMemo } from 'react';
-import { Briefcase, Building2, ClipboardCheck, HardHat, MapPin, MessageSquareWarning, Users } from 'lucide-react';
+import { Briefcase, Building2, ClipboardCheck, HardHat, MapPin, MessageSquareWarning, Users, Workflow } from 'lucide-react';
 import { StoreContext } from '../../../store';
 import { CrmJobStatus } from '../../../types';
 
@@ -8,10 +8,11 @@ const statusOrder: CrmJobStatus[] = ['PLANNED', 'SCHEDULED', 'IN_PROGRESS', 'COM
 export const CrmSnapshot: React.FC = () => {
   const store = useContext(StoreContext);
 
-  const stats = useMemo(() => {
-    if (!store) return null;
+    const stats = useMemo(() => {
+      if (!store) return null;
 
-    const vendorCount = store.crmAccounts.filter((a) => a.type === 'VENDOR').length;
+      const pipelineConfig = store.crmPipelineConfigs[0] || null;
+      const vendorCount = store.crmAccounts.filter((a) => a.type === 'VENDOR').length;
     const customerCount = store.crmAccounts.filter((a) => a.type === 'CUSTOMER').length;
     const openJobs = store.crmJobs.filter((j) => j.status !== 'COMPLETED' && j.status !== 'CANCELLED').length;
     const openTasks = store.crmTasks.filter((t) => t.status !== 'DONE').length;
@@ -22,6 +23,7 @@ export const CrmSnapshot: React.FC = () => {
     })).filter((entry) => entry.count > 0);
 
     return {
+      pipelineConfig,
       vendorCount,
       customerCount,
       contactCount: store.crmContacts.length,
@@ -109,6 +111,34 @@ export const CrmSnapshot: React.FC = () => {
               <div key={entry.status} className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-300">
                 <span>{entry.status.replace('_', ' ')}</span>
                 <span className="font-semibold text-slate-900 dark:text-white">{entry.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {stats.pipelineConfig && (
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
+              Real Estate Pipeline
+            </p>
+            <Workflow className="w-4 h-4 text-slate-400" />
+          </div>
+          <div className="space-y-2">
+            {stats.pipelineConfig.stages.map((stage) => (
+              <div key={stage.id} className="flex items-start justify-between text-sm text-slate-600 dark:text-slate-300">
+                <div>
+                  <div className="font-semibold text-slate-900 dark:text-white">{stage.name}</div>
+                  {stage.automationTriggers && stage.automationTriggers.length > 0 && (
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      Automations: {stage.automationTriggers.map((t) => t.action.replace(/_/g, ' ').toLowerCase()).join(', ')}
+                    </div>
+                  )}
+                </div>
+                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  SLA {stage.slaHours ?? '—'}h
+                </div>
               </div>
             ))}
           </div>

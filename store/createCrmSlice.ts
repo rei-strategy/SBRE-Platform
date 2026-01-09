@@ -11,6 +11,7 @@ import {
   crmTasks,
   crmTerritories,
   crmLocations,
+  crmPipelineConfigs,
 } from '../data/crmMockData';
 
 export const createCrmSlice: StoreSlice<CrmSlice> = () => ({
@@ -25,4 +26,5 @@ export const createCrmSlice: StoreSlice<CrmSlice> = () => ({
   crmInvoices,
   crmTasks,
   crmCases,
+  crmPipelineConfigs,
 });
