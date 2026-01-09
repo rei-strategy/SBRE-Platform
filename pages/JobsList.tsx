@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useContext } from 'react';
 import { Job, Client, JobStatus, UserRole } from '../types';
-import { Plus, Filter, Layout, Table as TableIcon, GanttChart, Map as MapIcon, AlertCircle } from 'lucide-react';
+import { Plus, Filter, Layout, Table as TableIcon, GanttChart, Map as MapIcon, AlertCircle, Workflow } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Pipeline } from './Pipeline';
 import { StoreContext } from '../store';
@@ -10,6 +10,7 @@ import { CancellationModal } from '../components/CancellationModal';
 // Extracted Components
 import { GanttView } from './jobs/views/GanttView';
 import { JobsTable } from './jobs/views/JobsTable';
+import { CrmPipelineView } from './jobs/views/CrmPipelineView';
 import { CreateJobModal } from './jobs/components/CreateJobModal';
 import { JobFilterType, ViewType, SortKey } from './jobs/types';
 
@@ -113,11 +114,12 @@ export const JobsList: React.FC<JobsListProps> = ({ jobs, clients, onAddJob }) =
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Jobs</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">Schedule, track, and manage your detailing operations.</p>
                 </div>
-                {(viewType === 'TABLE' || viewType === 'GANTT' || viewType === 'MAP' || viewType === 'PIPELINE') && (
+                {(viewType === 'TABLE' || viewType === 'GANTT' || viewType === 'MAP' || viewType === 'PIPELINE' || viewType === 'CRM_PIPELINE') && (
                     <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-4 shrink-0 bg-slate-50/50 dark:bg-slate-900/50 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
                         <button onClick={() => setViewType('TABLE')} className={`p-2 rounded-md transition-all ${viewType === 'TABLE' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`} title="Table View"><TableIcon className="w-5 h-5" /></button>
                         <button onClick={() => setViewType('GANTT')} className={`p-2 rounded-md transition-all ${viewType === 'GANTT' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`} title="Timeline View"><GanttChart className="w-5 h-5" /></button>
                         <button onClick={() => setViewType('PIPELINE')} className={`p-2 rounded-md transition-all ${viewType === 'PIPELINE' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`} title="Pipeline View"><Layout className="w-5 h-5" /></button>
+                        <button onClick={() => setViewType('CRM_PIPELINE')} className={`p-2 rounded-md transition-all ${viewType === 'CRM_PIPELINE' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`} title="CRM Pipeline"><Workflow className="w-5 h-5" /></button>
                         <button onClick={() => setViewType('MAP')} className={`p-2 rounded-md transition-all ${viewType === 'MAP' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`} title="Map View"><MapIcon className="w-5 h-5" /></button>
                     </div>
                 )}
@@ -163,6 +165,8 @@ export const JobsList: React.FC<JobsListProps> = ({ jobs, clients, onAddJob }) =
                         invoices={store?.invoices || []}
                         onUpdateStage={store?.updateJobStage || (() => { })}
                     />
+                ) : viewType === 'CRM_PIPELINE' ? (
+                    <CrmPipelineView />
                 ) : viewType === 'GANTT' ? (
                     <GanttView jobs={sortedJobs} clients={clients} />
                 ) : viewType === 'MAP' ? (

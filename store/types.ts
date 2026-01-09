@@ -140,6 +140,9 @@ export interface CrmSlice {
     crmTasks: CrmTask[];
     crmCases: CrmCase[];
     crmPipelineConfigs: CrmPipelineConfig[];
+    addCrmPipelineConfig: (config: CrmPipelineConfig) => void;
+    updateCrmPipelineConfig: (config: CrmPipelineConfig) => void;
+    removeCrmPipelineConfig: (configId: string) => void;
 }
 
 export interface UiSlice {

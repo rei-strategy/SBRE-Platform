@@ -39,6 +39,7 @@ export const useZustandStore = create<AppState>()(
                 users: state.users,
                 timeEntries: state.timeEntries,
                 syncQueue: state.syncQueue,
+                crmPipelineConfigs: state.crmPipelineConfigs,
                 settings: state.settings, // Often good to persist settings too
             }),
         }
