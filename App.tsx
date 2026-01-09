@@ -1,5 +1,5 @@
 
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore, StoreContext } from './store';
 import { Sidebar } from './components/Sidebar';
@@ -154,6 +154,15 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const App: React.FC = () => {
   const store = useAppStore();
+
+  useEffect(() => {
+    if (!store.isAuthenticated) return;
+    store.checkSlaBreaches();
+    const intervalId = window.setInterval(() => {
+      store.checkSlaBreaches();
+    }, 5 * 60 * 1000);
+    return () => window.clearInterval(intervalId);
+  }, [store.isAuthenticated, store.currentUser.id, store.settings?.industry, store.crmPipelineConfigs.length]);
 
   // Strict loading check: 
   // 1. If global loading is true

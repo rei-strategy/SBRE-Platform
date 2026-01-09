@@ -44,6 +44,7 @@ export interface JobSlice {
     moveJob: (jobId: string, start: string, end: string, assignedTechIds?: string[]) => void;
     unscheduleJob: (jobId: string) => void;
     addJobTemplate: (template: JobTemplate) => void;
+    checkSlaBreaches: () => void;
     // Time Entries often relate to jobs, but we can put them here or in a TimeSlice. 
     // Given the monolithic interdependencies, putting them here or separate is a choice.
     // Let's create a TimeSlice for them? Or just bundle with Jobs since technicians work on jobs.
@@ -151,6 +152,8 @@ export interface UiSlice {
     theme: 'light' | 'dark';
     toggleTheme: () => void;
     notifications: Notification[];
+    addNotification: (notification: Notification) => void;
+    removeNotification: (id: string) => void;
     markNotificationRead: (id: string) => void;
     markAllNotificationsRead: () => void;
     activityLog: ActivityLogItem[];

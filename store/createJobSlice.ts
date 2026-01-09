@@ -1,7 +1,7 @@
 import { StoreSlice } from './types';
 import { supabase } from '../supabaseClient';
-import { Job, JobStatus, UserRole, TimeEntry, TimeEntryType, TimeEntryStatus, JobTemplate } from '../types';
-import { differenceInMinutes } from 'date-fns';
+import { Job, JobStatus, UserRole, TimeEntry, TimeEntryType, TimeEntryStatus, JobTemplate, PipelineStage } from '../types';
+import { differenceInMinutes, differenceInHours, parseISO } from 'date-fns';
 
 export const createJobSlice: StoreSlice<any> = (set, get) => ({
     jobs: [],
@@ -163,7 +163,7 @@ export const createJobSlice: StoreSlice<any> = (set, get) => ({
         await supabase.from('jobs').update(payload).eq('id', id);
 
         set((state) => ({
-            jobs: state.jobs.map(j => j.id === id ? { ...j, pipelineStage: stage, status: newStatus || j.status } : j)
+            jobs: state.jobs.map(j => j.id === id ? { ...j, pipelineStage: stage, status: newStatus || j.status, lastStageChange: payload.last_stage_change } : j)
         }));
 
         if (newStatus) {
@@ -173,6 +173,70 @@ export const createJobSlice: StoreSlice<any> = (set, get) => ({
                 if (job) get().triggerAutomation('JOB_COMPLETED', id, { job });
             }
         }
+    },
+
+    checkSlaBreaches: () => {
+        const {
+            jobs,
+            crmPipelineConfigs,
+            settings,
+            currentUser,
+            notifications,
+            addNotification,
+            removeNotification
+        } = get();
+
+        if (!currentUser?.id) return;
+
+        const stageMap: Partial<Record<PipelineStage, string>> = {
+            LEAD: 'inquiry',
+            ESTIMATE_SENT: 'quote',
+            APPROVED: 'qualified',
+            SCHEDULED: 'work-order',
+            IN_PROGRESS: 'work-order',
+            COMPLETED: 'completion',
+            INVOICED: 'review',
+            PAID: 'review',
+        };
+
+        const pipelineConfig =
+            crmPipelineConfigs.find((config) => config.industryId === settings?.industry) ||
+            crmPipelineConfigs[0];
+
+        if (!pipelineConfig) return;
+
+        const breachIds = new Set<string>();
+
+        jobs.forEach((job) => {
+            const stageId = job.pipelineStage || 'LEAD';
+            const crmStageId = stageMap[stageId];
+            if (!crmStageId) return;
+            const stageMeta = pipelineConfig.stages.find((stage) => stage.id === crmStageId);
+            if (!stageMeta?.slaHours) return;
+            const anchor = job.lastStageChange || job.start;
+            if (!anchor) return;
+            const hoursOpen = differenceInHours(new Date(), parseISO(anchor));
+            if (hoursOpen <= stageMeta.slaHours) return;
+
+            const overdueBy = hoursOpen - stageMeta.slaHours;
+            const notificationId = `sla-${job.id}-${crmStageId}`;
+            breachIds.add(notificationId);
+
+            addNotification({
+                id: notificationId,
+                userId: currentUser.id,
+                title: `SLA breached: ${job.title}`,
+                message: `${stageMeta.name} exceeded by ${overdueBy}h`,
+                timestamp: new Date().toISOString(),
+                read: false,
+                link: '/jobs',
+                type: 'WARNING'
+            });
+        });
+
+        notifications
+            .filter((n) => n.id.startsWith('sla-') && !breachIds.has(n.id))
+            .forEach((n) => removeNotification(n.id));
     },
 
     assignJob: (jobId: string, techId: string, job: Job) => {

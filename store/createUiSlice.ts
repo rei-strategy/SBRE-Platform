@@ -29,6 +29,18 @@ export const createUiSlice: StoreSlice<any> = (set, get) => ({
         else document.documentElement.classList.remove('dark');
     },
 
+    addNotification: (notification: Notification) => {
+        set((state) => {
+            const existing = state.notifications.find((n) => n.id === notification.id);
+            const next = existing ? { ...existing, ...notification, read: existing.read } : notification;
+            return { notifications: [...state.notifications.filter((n) => n.id !== notification.id), next] };
+        });
+    },
+
+    removeNotification: (id: string) => {
+        set((state) => ({ notifications: state.notifications.filter((n) => n.id !== id) }));
+    },
+
     markNotificationRead: (id: string) => {
         set((state) => ({ notifications: state.notifications.map(n => n.id === id ? { ...n, read: true } : n) }));
     },
