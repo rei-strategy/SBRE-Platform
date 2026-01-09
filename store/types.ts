@@ -6,7 +6,8 @@ import {
     EmailCampaign, MarketingAutomation, AudienceSegment,
     Chat, ChatMessage, AppSettings, JobTemplate, TeamInvitation,
     UserRole, JobStatus, InvoiceStatus, QuoteStatus, POStatus,
-    TimeEntryStatus, LineItem, ChecklistItem, JobPhoto, AutomationTriggerType, ConditionGroup, AutomationCondition, TimeEntryType, Property
+    TimeEntryStatus, LineItem, ChecklistItem, JobPhoto, AutomationTriggerType, ConditionGroup, AutomationCondition, TimeEntryType, Property,
+    CrmAccount, CrmAsset, CrmCase, CrmContact, CrmInvoice, CrmJobProject, CrmQuote, CrmServiceCategory, CrmTask, CrmTerritory, CrmLocation
 } from '../types';
 
 // Define the shape of each slice
@@ -126,6 +127,20 @@ export interface CommunicationSlice {
     deleteChat: (chatId: string) => void;
 }
 
+export interface CrmSlice {
+    crmServiceCategories: CrmServiceCategory[];
+    crmTerritories: CrmTerritory[];
+    crmAccounts: CrmAccount[];
+    crmContacts: CrmContact[];
+    crmLocations: CrmLocation[];
+    crmAssets: CrmAsset[];
+    crmJobs: CrmJobProject[];
+    crmQuotes: CrmQuote[];
+    crmInvoices: CrmInvoice[];
+    crmTasks: CrmTask[];
+    crmCases: CrmCase[];
+}
+
 export interface UiSlice {
     theme: 'light' | 'dark';
     toggleTheme: () => void;
@@ -145,6 +160,6 @@ export interface DataSlice {
 }
 
 // Combine all slices
-export type AppState = AuthSlice & JobSlice & ClientSlice & FinanceSlice & InventorySlice & MarketingSlice & CommunicationSlice & UiSlice & DataSlice;
+export type AppState = AuthSlice & JobSlice & ClientSlice & FinanceSlice & InventorySlice & MarketingSlice & CommunicationSlice & CrmSlice & UiSlice & DataSlice;
 
 export type StoreSlice<T> = StateCreator<AppState, [], [], T>;

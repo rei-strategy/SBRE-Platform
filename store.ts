@@ -10,6 +10,7 @@ import { createFinanceSlice } from './store/createFinanceSlice';
 import { createInventorySlice } from './store/createInventorySlice';
 import { createMarketingSlice } from './store/createMarketingSlice';
 import { createCommunicationSlice } from './store/createCommunicationSlice';
+import { createCrmSlice } from './store/createCrmSlice';
 import { createUiSlice } from './store/createUiSlice';
 import { createDataSlice } from './store/createDataSlice';
 
@@ -24,6 +25,7 @@ export const useZustandStore = create<AppState>()(
             ...createInventorySlice(...a),
             ...createMarketingSlice(...a),
             ...createCommunicationSlice(...a),
+            ...createCrmSlice(...a),
             ...createUiSlice(...a),
             ...createDataSlice(...a),
         }),

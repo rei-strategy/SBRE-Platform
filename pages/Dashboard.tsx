@@ -11,6 +11,7 @@ import { RevenueChart } from './dashboard/components/RevenueChart';
 import { LiveTeamStatus } from './dashboard/components/LiveTeamStatus';
 import { QuotePipeline } from './dashboard/components/QuotePipeline';
 import { ActivityFeed } from './dashboard/components/ActivityFeed';
+import { CrmSnapshot } from './dashboard/components/CrmSnapshot';
 
 export const Dashboard: React.FC = () => {
   const store = useContext(StoreContext);
@@ -65,6 +66,7 @@ export const Dashboard: React.FC = () => {
 
         {/* RIGHT COLUMN (Status & Analytics) */}
         <div className="space-y-6">
+          <CrmSnapshot />
           <LiveTeamStatus />
           <QuotePipeline />
           <ActivityFeed />

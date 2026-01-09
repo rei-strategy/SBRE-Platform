@@ -546,6 +546,175 @@ export interface Invoice {
 }
 
 // ==============================================
+// CRM (INDUSTRY-AGNOSTIC) TYPES
+// ==============================================
+
+export type CrmAccountType = 'CUSTOMER' | 'VENDOR' | 'PARTNER' | 'INTERNAL';
+export type CrmEntityType =
+  | 'ACCOUNT'
+  | 'CONTACT'
+  | 'LOCATION'
+  | 'ASSET'
+  | 'JOB'
+  | 'QUOTE'
+  | 'INVOICE'
+  | 'TASK'
+  | 'CASE';
+
+export type CrmJobStatus = 'PLANNED' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+export type CrmQuoteStatus = 'DRAFT' | 'SENT' | 'APPROVED' | 'DECLINED' | 'CONVERTED';
+export type CrmInvoiceStatus = 'DRAFT' | 'SENT' | 'PAID' | 'OVERDUE' | 'BAD_DEBT';
+export type CrmTaskStatus = 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'BLOCKED';
+export type CrmCaseStatus = 'OPEN' | 'PENDING' | 'ESCALATED' | 'RESOLVED' | 'CLOSED';
+
+export type CrmPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+
+export interface CrmIndustryFields {
+  licenseTypes?: string[];
+  jobTypes?: string[];
+  complianceTags?: string[];
+  [key: string]: string | number | boolean | string[] | undefined;
+}
+
+export interface CrmEntityRef {
+  type: CrmEntityType;
+  id: string;
+}
+
+export interface CrmServiceCategory {
+  id: string;
+  name: string;
+  description?: string;
+  industryFields?: CrmIndustryFields;
+}
+
+export interface CrmTerritory {
+  id: string;
+  name: string;
+  region?: string;
+  serviceCategoryIds: string[];
+}
+
+export interface CrmAccount {
+  id: string;
+  name: string;
+  type: CrmAccountType;
+  primaryContactId?: string;
+  billingAddress?: Address;
+  tags: string[];
+  serviceCategoryIds: string[];
+  territoryIds: string[];
+  industryFields?: CrmIndustryFields;
+  createdAt: string;
+}
+
+export interface CrmContact {
+  id: string;
+  accountId: string;
+  locationId?: string;
+  name: string;
+  title?: string;
+  email?: string;
+  phone?: string;
+  tags: string[];
+  preferredContact?: 'EMAIL' | 'PHONE' | 'SMS';
+  industryFields?: CrmIndustryFields;
+  createdAt: string;
+}
+
+export interface CrmLocation {
+  id: string;
+  accountId: string;
+  name: string;
+  address: Address;
+  territoryId?: string;
+  notes?: string;
+  industryFields?: CrmIndustryFields;
+}
+
+export interface CrmAsset {
+  id: string;
+  accountId: string;
+  locationId: string;
+  name: string;
+  type: string;
+  status?: 'ACTIVE' | 'INACTIVE' | 'RETIRED';
+  serialNumber?: string;
+  serviceCategoryIds: string[];
+  installedAt?: string;
+  warrantyEndsAt?: string;
+  industryFields?: CrmIndustryFields;
+}
+
+export interface CrmJobProject {
+  id: string;
+  accountId: string;
+  locationId: string;
+  assetId?: string;
+  title: string;
+  description?: string;
+  status: CrmJobStatus;
+  jobType?: string;
+  assignedUserIds: string[];
+  scheduledStart?: string;
+  scheduledEnd?: string;
+  quoteId?: string;
+  invoiceId?: string;
+  industryFields?: CrmIndustryFields;
+}
+
+export interface CrmQuote {
+  id: string;
+  accountId: string;
+  locationId?: string;
+  jobId?: string;
+  status: CrmQuoteStatus;
+  amount: number;
+  currency: string;
+  issuedDate: string;
+  expiryDate?: string;
+  industryFields?: CrmIndustryFields;
+}
+
+export interface CrmInvoice {
+  id: string;
+  accountId: string;
+  jobId?: string;
+  status: CrmInvoiceStatus;
+  amount: number;
+  balanceDue: number;
+  issuedDate: string;
+  dueDate?: string;
+  industryFields?: CrmIndustryFields;
+}
+
+export interface CrmTask {
+  id: string;
+  accountId: string;
+  relatedTo?: CrmEntityRef;
+  title: string;
+  description?: string;
+  status: CrmTaskStatus;
+  priority: CrmPriority;
+  dueDate?: string;
+  assigneeId?: string;
+}
+
+export interface CrmCase {
+  id: string;
+  accountId: string;
+  relatedTo?: CrmEntityRef;
+  subject: string;
+  description?: string;
+  status: CrmCaseStatus;
+  priority: CrmPriority;
+  openedAt: string;
+  closedAt?: string;
+  tags?: string[];
+  industryFields?: CrmIndustryFields;
+}
+
+// ==============================================
 // MARKETING & ADS INTELLIGENCE TYPES
 // ==============================================
 

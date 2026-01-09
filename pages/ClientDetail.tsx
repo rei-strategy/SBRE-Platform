@@ -30,7 +30,15 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({ clients, jobs, quote
 
     // Form States
     const [editForm, setEditForm] = useState<Partial<Client>>({});
-    const [jobForm, setJobForm] = useState({ title: '', description: '', date: '', time: '09:00' });
+    const [jobForm, setJobForm] = useState({
+        title: '',
+        description: '',
+        date: '',
+        time: '09:00',
+        propertyId: client?.properties[0]?.id || '',
+        jobType: '',
+        accessNotes: '',
+    });
     const attemptedFixes = useRef<Set<string>>(new Set());
 
     // Auto-fix missing coordinates
@@ -80,13 +88,21 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({ clients, jobs, quote
     };
 
     const handleCreateJob = () => {
+        if (!jobForm.propertyId) {
+            alert('Please select a property.');
+            return;
+        }
         const start = new Date(`${jobForm.date}T${jobForm.time}`);
         const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+
+        const notesParts = [];
+        if (jobForm.jobType) notesParts.push(`Job Type: ${jobForm.jobType}`);
+        if (jobForm.accessNotes) notesParts.push(`Access: ${jobForm.accessNotes}`);
 
         const newJob: Job = {
             id: crypto.randomUUID(),
             clientId: client.id,
-            propertyId: client.properties[0].id,
+            propertyId: jobForm.propertyId,
             assignedTechIds: [],
             title: jobForm.title,
             description: jobForm.description,
@@ -96,15 +112,24 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({ clients, jobs, quote
             priority: 'MEDIUM',
             items: [],
             checklists: [
-                { id: crypto.randomUUID(), label: 'Standard Safety Check', isCompleted: false },
-                { id: crypto.randomUUID(), label: 'Perform Service', isCompleted: false }
+                { id: crypto.randomUUID(), label: 'Confirm access & scope', isCompleted: false },
+                { id: crypto.randomUUID(), label: 'Complete work order', isCompleted: false },
+                { id: crypto.randomUUID(), label: 'Upload completion photos', isCompleted: false }
             ],
             photos: [],
-            notes: ''
+            notes: notesParts.join(' • ')
         };
         onAddJob(newJob);
         setIsJobModalOpen(false);
-        setJobForm({ title: '', description: '', date: '', time: '09:00' });
+        setJobForm({
+            title: '',
+            description: '',
+            date: '',
+            time: '09:00',
+            propertyId: client.properties[0]?.id || '',
+            jobType: '',
+            accessNotes: '',
+        });
         setActiveTab('jobs');
     };
 
@@ -261,8 +286,43 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({ clients, jobs, quote
             <Modal isOpen={isJobModalOpen} onClose={() => setIsJobModalOpen(false)} title={`New Job for ${client.firstName}`} footer={<><Button variant="ghost" onClick={() => setIsJobModalOpen(false)}>Cancel</Button><Button onClick={handleCreateJob}>Create Job</Button></>}>
                 <div className="space-y-4 p-1">
                     <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1">Property / Site</label>
+                        <select
+                            className="w-full border rounded-lg p-2.5 bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                            value={jobForm.propertyId}
+                            onChange={(e) => setJobForm({ ...jobForm, propertyId: e.target.value })}
+                        >
+                            <option value="">Select Property...</option>
+                            {client.properties.map((property) => (
+                                <option key={property.id} value={property.id}>
+                                    {property.address.street}, {property.address.city}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-1">Job Title</label>
-                        <input className="w-full border rounded-lg p-2.5 bg-white focus:ring-2 focus:ring-emerald-500 outline-none" value={jobForm.title} onChange={(e) => setJobForm({ ...jobForm, title: e.target.value })} placeholder="e.g. Interior Detail" />
+                        <input className="w-full border rounded-lg p-2.5 bg-white focus:ring-2 focus:ring-emerald-500 outline-none" value={jobForm.title} onChange={(e) => setJobForm({ ...jobForm, title: e.target.value })} placeholder="e.g. Unit turnover + make-ready" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 mb-1">Job Type</label>
+                            <input
+                                className="w-full border rounded-lg p-2.5 bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                                value={jobForm.jobType}
+                                onChange={(e) => setJobForm({ ...jobForm, jobType: e.target.value })}
+                                placeholder="Turnover, Make-ready, Inspection"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 mb-1">Access Notes</label>
+                            <input
+                                className="w-full border rounded-lg p-2.5 bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                                value={jobForm.accessNotes}
+                                onChange={(e) => setJobForm({ ...jobForm, accessNotes: e.target.value })}
+                                placeholder="Gate code, lockbox, concierge"
+                            />
+                        </div>
                     </div>
                     <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
