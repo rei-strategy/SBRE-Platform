@@ -179,9 +179,27 @@ const App: React.FC = () => {
           <NewUserOnboarding
             onComplete={() => {
               store.completeOnboarding();
-              window.location.hash = '#/admin/settings';
+              window.location.hash = '#/client-dashboard';
             }}
           />
+        </HashRouter>
+      </StoreContext.Provider>
+    );
+  }
+
+  // --- Client experience (skip platform shell) ---
+  if (store.isAuthenticated && store.currentUser.role === UserRole.CLIENT) {
+    return (
+      <StoreContext.Provider value={store}>
+        <HashRouter>
+          <Routes>
+            <Route path=\"/\" element={<Navigate to=\"/client-dashboard\" replace />} />
+            <Route path=\"/platform\" element={<CategoriesPage />} />
+            <Route path=\"/client-dashboard\" element={<ClientDashboard />} />
+            <Route path=\"/vendor-benefits\" element={<VendorBenefitsPage />} />
+            <Route path=\"/changelog\" element={<ChangelogPage />} />
+            <Route path=\"*\" element={<Navigate to=\"/\" replace />} />
+          </Routes>
         </HashRouter>
       </StoreContext.Provider>
     );

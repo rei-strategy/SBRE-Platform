@@ -24,7 +24,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ user, onSwit
   const [currentView, setCurrentView] = useState<DrawerView>('menu');
   const [elapsed, setElapsed] = useState(0);
 
-  const isAdmin = user.role === UserRole.ADMIN || user.role === UserRole.OFFICE || user.role === UserRole.CLIENT;
+  const isAdmin = user.role === UserRole.ADMIN;
   const roleSwitchLabel = user.role === UserRole.ADMIN
     ? 'Switch Role (Admin → Technician)'
     : user.role === UserRole.TECHNICIAN

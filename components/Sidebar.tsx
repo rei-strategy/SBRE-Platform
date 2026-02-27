@@ -24,7 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onSwitchUser, isCollapse
   const store = useContext(StoreContext);
   const location = useLocation();
   const navigate = useNavigate();
-  const isAdmin = user.role === UserRole.ADMIN || user.role === UserRole.OFFICE || user.role === UserRole.CLIENT;
+  const isAdmin = user.role === UserRole.ADMIN;
   const roleSwitchLabel = user.role === UserRole.ADMIN
     ? 'Switch Role (Admin → Technician)'
     : user.role === UserRole.TECHNICIAN
