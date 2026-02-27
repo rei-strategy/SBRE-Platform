@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Calendar, Briefcase, DollarSign, Menu,
   X, Users, FileText, PieChart, HardHat, ChevronRight, LogOut,
   Settings, Bell, Moon, Sun, ArrowLeft, MessageSquare, Clock,
-  Pause, Play, MapPin, Search
+  Pause, Play, MapPin, Search, Zap, Package
 } from 'lucide-react';
 import { User, UserRole } from '../types';
 import { StoreContext } from '../store';
@@ -25,6 +25,11 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ user, onSwit
   const [elapsed, setElapsed] = useState(0);
 
   const isAdmin = user.role === UserRole.ADMIN || user.role === UserRole.OFFICE;
+  const roleSwitchLabel = user.role === UserRole.ADMIN
+    ? 'Switch Role (Admin → Technician)'
+    : user.role === UserRole.TECHNICIAN
+      ? 'Switch Role (Technician → Admin)'
+      : `Switch Role (Current: ${user.role})`;
   const notifications = store?.notifications.filter(n => n.userId === user.id) || [];
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -62,17 +67,21 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ user, onSwit
     { path: '/', label: 'Home', icon: LayoutDashboard, show: true },
     { path: '/schedule', label: 'Schedule', icon: Calendar, show: true },
     { path: '/jobs', label: 'Jobs', icon: Briefcase, show: true },
-    { path: '/communication', label: 'Inbox', icon: MessageSquare, badge: unreadMessageCount, show: true },
+    { path: '/communication', label: 'Inbox', icon: MessageSquare, show: true },
     { path: '/timesheets', label: 'Time', icon: Clock, show: true },
   ];
 
   // Secondary Items (Hidden in Menu)
   const menuItems = [
-    { path: '/clients', label: 'Clients', icon: Users, show: isAdmin, color: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
-    { path: '/invoices', label: 'Invoices', icon: DollarSign, show: isAdmin, color: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
-    { path: '/quotes', label: 'Quotes', icon: FileText, show: isAdmin, color: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' },
+    { path: '/notifications', label: 'Notifications', icon: Bell, show: true, color: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
+    { path: '/contacts', label: 'Contacts', icon: Users, show: isAdmin, color: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
+    { path: '/invoices', label: 'Invoices', icon: DollarSign, show: false, color: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
+    { path: '/quotes', label: 'Quotes', icon: FileText, show: false, color: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' },
     { path: '/team', label: 'Team', icon: HardHat, show: isAdmin, color: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
-    { path: '/research/competitor-insights', label: 'Research', icon: Search, show: isAdmin, color: 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' },
+    { path: '/marketing/automations', label: 'Automations', icon: Zap, show: false, color: 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400' },
+    { path: '/inventory', label: 'Inventory', icon: Package, show: false, color: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
+    { path: '/admin/settings', label: 'Admin Panel', icon: Settings, show: isAdmin, color: 'bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300' },
+    { path: '/research/competitor-insights', label: 'Research', icon: Search, show: false, color: 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' },
     { path: '/reports', label: 'Reports', icon: PieChart, show: isAdmin, color: 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400' },
   ];
 
@@ -108,7 +117,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ user, onSwit
               <div className="relative">
                 <item.icon className={`w-6 h-6 ${iconColor} ${isTimeTab && activeEntry ? 'animate-pulse' : isActive ? 'fill-current' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
                 {item.badge && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border border-white dark:border-slate-900">
+                  <span className="hidden md:flex absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white text-[9px] font-bold items-center justify-center rounded-full border border-white dark:border-slate-900">
                     {item.badge > 9 ? '9+' : item.badge}
                   </span>
                 )}
@@ -126,7 +135,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ user, onSwit
         >
           <div className="relative">
             <Menu className="w-6 h-6" strokeWidth={2} />
-            {unreadCount > 0 && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-white dark:border-slate-900"></span>}
+            {unreadCount > 0 && <span className="hidden md:block absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-white dark:border-slate-900"></span>}
           </div>
           <span className="text-[10px] font-medium">Menu</span>
         </button>
@@ -288,7 +297,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ user, onSwit
                 <button onClick={() => { onSwitchUser(); handleClose(); }} className="w-full flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold active:bg-slate-50 dark:active:bg-slate-700">
                   <div className="flex items-center gap-3">
                     <Users className="w-5 h-5 text-slate-400" />
-                    Switch Role
+                    {roleSwitchLabel}
                   </div>
                   <ChevronRight className="w-5 h-5 text-slate-300" />
                 </button>

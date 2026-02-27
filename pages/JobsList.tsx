@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useContext } from 'react';
+import { Link } from 'react-router-dom';
 import { Job, Client, JobStatus, UserRole } from '../types';
-import { Plus, Filter, Layout, Table as TableIcon, GanttChart, Map as MapIcon, AlertCircle, Workflow, ShieldAlert } from 'lucide-react';
+import { Plus, Filter, Layout, Table as TableIcon, GanttChart, Map as MapIcon, AlertCircle, Workflow, ShieldAlert, CalendarClock, ClipboardList, Route } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Pipeline } from './Pipeline';
 import { StoreContext } from '../store';
@@ -24,6 +25,7 @@ interface JobsListProps {
 export const JobsList: React.FC<JobsListProps> = ({ jobs, clients, onAddJob }) => {
     const store = useContext(StoreContext);
     const users = store?.users || [];
+    const quotes = store?.quotes || [];
     const currentUser = store?.currentUser;
     const isTechnician = currentUser?.role === UserRole.TECHNICIAN;
     const canViewCases = store?.canAccessCrmObject?.('CASE', 'VIEW');
@@ -109,6 +111,10 @@ export const JobsList: React.FC<JobsListProps> = ({ jobs, clients, onAddJob }) =
         });
     }, [jobs, activeFilter, sortConfig, clients, users]);
 
+    const draftJobs = sortedJobs.filter((job) => job.status === JobStatus.DRAFT);
+    const activeJobs = sortedJobs.filter((job) => job.status === JobStatus.SCHEDULED || job.status === JobStatus.IN_PROGRESS);
+    const availableTechs = Object.values(store?.techAvailability || {}).filter(Boolean).length;
+
     return (
         <div className="max-w-7xl mx-auto h-[calc(100vh-100px)] flex flex-col">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 shrink-0">
@@ -117,15 +123,24 @@ export const JobsList: React.FC<JobsListProps> = ({ jobs, clients, onAddJob }) =
                     <p className="text-slate-500 dark:text-slate-400 mt-1">Schedule, track, and manage your detailing operations.</p>
                 </div>
                 {(viewType === 'TABLE' || viewType === 'GANTT' || viewType === 'MAP' || viewType === 'PIPELINE' || viewType === 'CRM_PIPELINE' || viewType === 'CRM_CASES') && (
-                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-4 shrink-0 bg-slate-50/50 dark:bg-slate-900/50 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <div className="flex flex-row flex-wrap md:flex-nowrap md:items-center justify-between gap-2 mb-4 shrink-0 bg-slate-50/50 dark:bg-slate-900/50 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
                         <button onClick={() => setViewType('TABLE')} className={`p-2 rounded-md transition-all ${viewType === 'TABLE' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`} title="Table View"><TableIcon className="w-5 h-5" /></button>
                         <button onClick={() => setViewType('GANTT')} className={`p-2 rounded-md transition-all ${viewType === 'GANTT' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`} title="Timeline View"><GanttChart className="w-5 h-5" /></button>
-                        <button onClick={() => setViewType('PIPELINE')} className={`p-2 rounded-md transition-all ${viewType === 'PIPELINE' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`} title="Pipeline View"><Layout className="w-5 h-5" /></button>
-                        <button onClick={() => setViewType('CRM_PIPELINE')} className={`p-2 rounded-md transition-all ${viewType === 'CRM_PIPELINE' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`} title="CRM Pipeline"><Workflow className="w-5 h-5" /></button>
+                        <button onClick={() => setViewType('PIPELINE')} className={`px-3 py-2 rounded-md transition-all flex items-center gap-2 ${viewType === 'PIPELINE' ? 'bg-emerald-50 dark:bg-emerald-900/30 shadow-sm text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`} title="Pipeline View"><Layout className="w-6 h-6" /><span className="text-sm font-semibold">Pipeline</span></button>
+                        <button onClick={() => setViewType('CRM_PIPELINE')} className={`px-3 py-2 rounded-md transition-all flex items-center gap-2 ${viewType === 'CRM_PIPELINE' ? 'bg-blue-50 dark:bg-blue-900/30 shadow-sm text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`} title="CRM Pipeline"><Workflow className="w-6 h-6" /><span className="text-sm font-semibold">CRM Pipeline</span></button>
                         {canViewCases && (
-                            <button onClick={() => setViewType('CRM_CASES')} className={`p-2 rounded-md transition-all ${viewType === 'CRM_CASES' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`} title="CRM Cases"><ShieldAlert className="w-5 h-5" /></button>
+                            <button onClick={() => setViewType('CRM_CASES')} className={`px-3 py-2 rounded-md transition-all flex items-center gap-2 ${viewType === 'CRM_CASES' ? 'bg-amber-50 dark:bg-amber-900/30 shadow-sm text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`} title="CRM Cases"><ShieldAlert className="w-6 h-6" /><span className="text-sm font-semibold">Cases</span></button>
                         )}
                         <button onClick={() => setViewType('MAP')} className={`p-2 rounded-md transition-all ${viewType === 'MAP' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`} title="Map View"><MapIcon className="w-5 h-5" /></button>
+                    </div>
+                )}
+
+                {(viewType === 'PIPELINE' || viewType === 'CRM_PIPELINE' || viewType === 'CRM_CASES') && (
+                    <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 flex items-center justify-between gap-3">
+                        <span>Response-time SLA settings are in <strong>CRM Pipeline</strong>. Open any stage and use <strong>Edit SLA</strong>.</span>
+                        {viewType !== 'CRM_PIPELINE' && (
+                            <Button size="sm" onClick={() => setViewType('CRM_PIPELINE')}>Go to CRM Pipeline</Button>
+                        )}
                     </div>
                 )}
 
@@ -157,6 +172,84 @@ export const JobsList: React.FC<JobsListProps> = ({ jobs, clients, onAddJob }) =
                                 {filter.label}
                             </button>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {!isTechnician && (viewType === 'TABLE' || viewType === 'PIPELINE' || viewType === 'MAP' || viewType === 'GANTT') && (
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
+                    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-xs uppercase font-semibold text-slate-500 dark:text-slate-400">Scheduling & Booking</p>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Availability</h3>
+                            </div>
+                            <CalendarClock className="w-5 h-5 text-slate-400" />
+                        </div>
+                        <div className="text-sm text-slate-600 dark:text-slate-300">
+                            {availableTechs} techs currently marked available.
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            <Link to="/schedule" className="inline-flex">
+                                <Button size="sm">Open Scheduler</Button>
+                            </Link>
+                            <Button size="sm" variant="outline" onClick={() => setIsModalOpen(true)}>Create Booking</Button>
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">
+                            Route optimization and availability controls live in the scheduling calendar.
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-xs uppercase font-semibold text-slate-500 dark:text-slate-400">Booking Queue</p>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Draft Requests</h3>
+                            </div>
+                            <ClipboardList className="w-5 h-5 text-slate-400" />
+                        </div>
+                        {draftJobs.length === 0 ? (
+                            <div className="text-sm text-slate-500 dark:text-slate-400">No draft bookings waiting.</div>
+                        ) : (
+                            <div className="space-y-2">
+                                {draftJobs.slice(0, 3).map((job) => {
+                                    const client = clients.find((c) => c.id === job.clientId);
+                                    return (
+                                        <div key={job.id} className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 text-sm">
+                                            <div className="font-semibold text-slate-900 dark:text-white">{job.title}</div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                                                {client?.firstName} {client?.lastName} • {new Date(job.start).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-xs uppercase font-semibold text-slate-500 dark:text-slate-400">Work Orders</p>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">In Progress</h3>
+                            </div>
+                            <Route className="w-5 h-5 text-slate-400" />
+                        </div>
+                        {activeJobs.length === 0 ? (
+                            <div className="text-sm text-slate-500 dark:text-slate-400">No active work orders right now.</div>
+                        ) : (
+                            <div className="space-y-2">
+                                {activeJobs.slice(0, 3).map((job) => {
+                                    const client = clients.find((c) => c.id === job.clientId);
+                                    return (
+                                        <div key={job.id} className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 text-sm">
+                                            <div className="font-semibold text-slate-900 dark:text-white">{job.title}</div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                                                {client?.firstName} {client?.lastName} • {job.status.replace('_', ' ')}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -196,7 +289,10 @@ export const JobsList: React.FC<JobsListProps> = ({ jobs, clients, onAddJob }) =
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     clients={clients}
+                    users={users}
+                    currentUser={store?.currentUser}
                     onAddJob={onAddJob}
+                    quotes={quotes}
                 />
             )}
 

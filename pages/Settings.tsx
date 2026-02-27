@@ -1,12 +1,15 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { StoreContext } from '../store';
 import {
-    Building2, Users, Calendar, DollarSign, List, Bell, Box,
-    Settings as SettingsIcon, Database, Briefcase, User
+    Building2, Users, Calendar, DollarSign, List, Box,
+    Settings as SettingsIcon, Database, User,
+    AlertTriangle
 } from 'lucide-react';
 import { Button } from '../components/Button';
-import { UserRole, ServiceCategory } from '../types';
+import { Client, Invoice, Job, ServiceCategory, UserRole } from '../types';
 import { INDUSTRY_OPTIONS } from '../data/industryOptions';
+import { CRM_AUTOMATION_TRIGGERS, CRM_MESSAGE_TEMPLATES } from '../data/crmMessagingTemplates';
 
 // Extracted Components
 import { ProfileSettings } from './settings/ProfileSettings';
@@ -16,6 +19,7 @@ import { FinanceSettings } from './settings/FinanceSettings';
 
 export const Settings: React.FC = () => {
     const store = useContext(StoreContext);
+    const [searchParams, setSearchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState('');
 
     if (!store) return null;
@@ -23,6 +27,9 @@ export const Settings: React.FC = () => {
         settings,
         updateSettings,
         users,
+        clients,
+        jobs,
+        invoices,
         updateUser,
         currentUser,
         deleteAccount,
@@ -32,11 +39,8 @@ export const Settings: React.FC = () => {
         addCategory
     } = store;
     const isAdmin = currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.OFFICE;
-
-    // Initialize active tab based on role
-    if (!activeTab) {
-        setActiveTab(isAdmin ? 'company' : 'profile');
-    }
+    const canExportClients = clients.length > 0;
+    const canExportInvoices = invoices.length > 0;
 
     const handleDeleteAccount = async () => {
         if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
@@ -54,13 +58,34 @@ export const Settings: React.FC = () => {
         { id: 'schedule', label: 'Schedule Config', icon: Calendar, adminOnly: true },
         { id: 'finance', label: 'Finance & Tax', icon: DollarSign, adminOnly: true },
         { id: 'services', label: 'Service Menu', icon: List, adminOnly: false },
-        { id: 'notifications', label: 'Notifications', icon: Bell, adminOnly: true },
         { id: 'inventory', label: 'Inventory', icon: Box, adminOnly: true },
-        { id: 'workflow', label: 'Workflow', icon: Briefcase, adminOnly: true },
-        { id: 'data', label: 'Data Management', icon: Database, adminOnly: true },
+        { id: 'data', label: 'Data Management', icon: Database, adminOnly: false },
+        { id: 'logout', label: 'Log Out', icon: AlertTriangle, adminOnly: false },
     ];
 
     const visibleTabs = allTabs.filter(tab => isAdmin || !tab.adminOnly);
+    const defaultTab = isAdmin ? 'company' : 'profile';
+
+    useEffect(() => {
+        const requestedTab = searchParams.get('tab');
+        const validTabIds = visibleTabs.map((tab) => tab.id);
+
+        if (requestedTab && validTabIds.includes(requestedTab)) {
+            if (activeTab !== requestedTab) {
+                setActiveTab(requestedTab);
+            }
+            return;
+        }
+
+        if (!activeTab || !validTabIds.includes(activeTab)) {
+            setActiveTab(defaultTab);
+        }
+    }, [activeTab, defaultTab, searchParams, visibleTabs]);
+
+    const handleTabChange = (tabId: string) => {
+        setActiveTab(tabId);
+        setSearchParams({ tab: tabId }, { replace: true });
+    };
 
     return (
         <div className="max-w-7xl mx-auto pb-10">
@@ -81,10 +106,22 @@ export const Settings: React.FC = () => {
                         {visibleTabs.map(tab => (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors border-l-4 ${activeTab === tab.id ? 'bg-slate-50 dark:bg-slate-700/50 border-emerald-500 text-slate-900 dark:text-white' : 'border-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/30 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                onClick={() => {
+                                    if (tab.id === 'logout') {
+                                        store.logout();
+                                        return;
+                                    }
+                                    handleTabChange(tab.id);
+                                }}
+                                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors border-l-4 ${
+                                    activeTab === tab.id
+                                        ? 'bg-slate-50 dark:bg-slate-700/50 border-emerald-500 text-slate-900 dark:text-white'
+                                        : tab.id === 'logout'
+                                            ? 'border-transparent text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-500/10'
+                                            : 'border-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/30 hover:text-slate-700 dark:hover:text-slate-200'
+                                }`}
                             >
-                                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-emerald-500' : 'text-slate-400 dark:text-slate-500'}`} />
+                                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-emerald-500' : tab.id === 'logout' ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`} />
                                 {tab.label}
                             </button>
                         ))}
@@ -157,38 +194,7 @@ export const Settings: React.FC = () => {
                             />
                         )}
 
-                        {activeTab === 'services' && isAdmin && (
-                            <div className="mt-8 border-t border-slate-100 dark:border-slate-700 pt-6">
-                                <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Category Approvals</h2>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Review vendor/operator requests before they appear in the library.</p>
-                                <div>
-                                    <PendingCategoryList
-                                        categoryLibrary={categoryLibrary}
-                                        approveCategory={approveCategory}
-                                        rejectCategory={rejectCategory}
-                                        currentUserId={currentUser.id}
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 6. Notifications */}
-                        {activeTab === 'notifications' && isAdmin && (
-                            <div className="space-y-6 max-w-2xl">
-                                <h2 className="text-xl font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-700 pb-4">Notification Templates</h2>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">"On My Way" SMS</label>
-                                    <textarea
-                                        className="w-full border border-slate-200 dark:border-slate-600 rounded-lg p-3 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none h-24"
-                                        value={settings.smsTemplateOnMyWay}
-                                        onChange={(e) => updateSettings({ smsTemplateOnMyWay: e.target.value })}
-                                    />
-                                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">Available variables: {'{{clientName}}'}, {'{{techName}}'}</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 7. Inventory */}
+                        {/* 6. Inventory */}
                         {activeTab === 'inventory' && isAdmin && (
                             <div className="space-y-6 max-w-2xl">
                                 <h2 className="text-xl font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-700 pb-4">Inventory Settings</h2>
@@ -205,39 +211,25 @@ export const Settings: React.FC = () => {
                             </div>
                         )}
 
-                        {/* 8. Workflow */}
-                        {activeTab === 'workflow' && isAdmin && (
-                            <div className="space-y-6 max-w-2xl">
-                                <h2 className="text-xl font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-700 pb-4">Workflow Automation</h2>
-                                <div className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-xl">
-                                    <div>
-                                        <p className="font-bold text-slate-900 dark:text-white">Auto-Invoice</p>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">Automatically generate a draft invoice when a job is completed.</p>
-                                    </div>
-                                    <button
-                                        onClick={() => updateSettings({ enableAutoInvoice: !settings.enableAutoInvoice })}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.enableAutoInvoice ? 'bg-emerald-600' : 'bg-slate-200 dark:bg-slate-600'}`}
-                                    >
-                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.enableAutoInvoice ? 'translate-x-6' : 'translate-x-1'}`} />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 9. Data */}
                         {activeTab === 'data' && isAdmin && (
                             <div className="space-y-6">
                                 <h2 className="text-xl font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-700 pb-4">Data Management</h2>
-                                <div className="flex gap-4">
-                                    <Button variant="outline">Export Clients (CSV)</Button>
-                                    <Button variant="outline">Export Invoices (CSV)</Button>
+                                <div className="flex flex-wrap gap-3">
+                                    <Button variant="outline" disabled={!canExportClients}>Export Clients (CSV)</Button>
+                                    <Button variant="outline" disabled={!canExportInvoices}>Export Invoices (CSV)</Button>
                                 </div>
+                                {(!canExportClients || !canExportInvoices) && (
+                                    <p className="text-xs text-slate-500">
+                                        Export is available once data exists.
+                                    </p>
+                                )}
                                 <div className="pt-8 border-t border-slate-100 dark:border-slate-700">
                                     <h3 className="text-sm font-bold text-red-600 dark:text-red-400 mb-2 uppercase tracking-wide">Danger Zone</h3>
                                     <Button variant="danger" size="sm" onClick={handleDeleteAccount}>Delete Account</Button>
                                 </div>
                             </div>
                         )}
+
                     </div>
                 </div>
             </div>
@@ -366,8 +358,6 @@ const ServiceCategoryGovernance: React.FC<CategoryGovernanceProps> = ({
                         value={requestForm.synonyms}
                         onChange={(e) => setRequestForm((prev) => ({ ...prev, synonyms: e.target.value }))}
                     />
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                     <input
                         className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
                         placeholder="Skill requirements (comma separated)"
@@ -381,36 +371,32 @@ const ServiceCategoryGovernance: React.FC<CategoryGovernanceProps> = ({
                         onChange={(e) => setRequestForm((prev) => ({ ...prev, requiredDocuments: e.target.value }))}
                     />
                 </div>
-                <Button size="sm" onClick={handleSubmitRequest}>Submit Request</Button>
-                {!isAdmin && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Requests are reviewed by admins before they appear in the approved catalog.
-                    </p>
-                )}
+                <div className="flex justify-end">
+                    <Button size="sm" onClick={handleSubmitRequest}>Submit Request</Button>
+                </div>
             </div>
 
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-3">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                    <div className="text-sm font-semibold text-slate-900 dark:text-white">Category Library</div>
-                    <div className="flex flex-wrap gap-2">
+            {isAdmin && (
+                <div className="space-y-4">
+                    <div className="flex flex-wrap gap-2 items-center">
                         <input
-                            className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs"
+                            className="w-full md:w-64 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
                             placeholder="Search categories"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                         <select
-                            className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs"
+                            className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
                             value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value as any)}
+                            onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
                         >
-                            <option value="ALL">All statuses</option>
+                            <option value="ALL">All</option>
                             <option value="APPROVED">Approved</option>
                             <option value="PENDING">Pending</option>
                             <option value="REJECTED">Rejected</option>
                         </select>
                         <select
-                            className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs"
+                            className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
                             value={industryFilter}
                             onChange={(e) => setIndustryFilter(e.target.value)}
                         >
@@ -422,93 +408,32 @@ const ServiceCategoryGovernance: React.FC<CategoryGovernanceProps> = ({
                             ))}
                         </select>
                     </div>
-                </div>
 
-                <div className="divide-y divide-slate-100 dark:divide-slate-700 text-slate-900 dark:text-white">
-                    {filteredCategories.length === 0 ? (
-                        <div className="p-4 text-sm text-slate-500 dark:text-slate-400">No categories match your filters.</div>
-                    ) : (
-                        filteredCategories.map((category) => (
-                            <div key={category.id} className="p-4 grid grid-cols-1 lg:grid-cols-[1.5fr,1fr] gap-4">
-                                <div className="space-y-1">
+                    <div className="space-y-3">
+                        {filteredCategories.map((category) => (
+                            <div key={category.id} className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-start justify-between gap-4">
+                                <div>
                                     <div className="flex items-center gap-2">
-                                        <span className="font-semibold text-sm">{category.name}</span>
-                                        <span className="text-[10px] uppercase tracking-wide text-slate-500 dark:text-slate-400">{category.industryId.replace(/-/g, ' ')}</span>
+                                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">{category.name}</h3>
+                                        <span className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                            {category.status}
+                                        </span>
                                     </div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">{category.description}</div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">
-                                        Tags: {category.tags.join(', ') || '—'}
-                                    </div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">
-                                        Synonyms: {category.synonyms.join(', ') || '—'}
-                                    </div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">
-                                        Skills: {category.skillRequirements.join(', ') || '—'}
-                                    </div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">
-                                        Required docs: {category.requiredDocuments.join(', ') || '—'}
-                                    </div>
+                                    {category.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{category.description}</p>}
                                 </div>
-                                <div className="flex items-start lg:items-center justify-between lg:justify-end gap-3">
-                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${
-                                        category.status === 'APPROVED'
-                                            ? 'bg-emerald-100 text-emerald-700'
-                                            : category.status === 'PENDING'
-                                            ? 'bg-amber-100 text-amber-700'
-                                            : 'bg-slate-200 text-slate-600'
-                                    }`}>
-                                        {category.status}
-                                    </span>
-                                    {isAdmin && category.status === 'REJECTED' && (
-                                        <Button size="sm" variant="outline" onClick={() => approveCategory(category.id, currentUserId)}>
-                                            Re-approve
-                                        </Button>
+                                <div className="flex items-center gap-2">
+                                    {category.status !== 'APPROVED' && (
+                                        <Button size="sm" onClick={() => approveCategory(category.id, currentUserId)}>Approve</Button>
+                                    )}
+                                    {category.status !== 'REJECTED' && (
+                                        <Button size="sm" variant="outline" onClick={() => rejectCategory(category.id, currentUserId)}>Reject</Button>
                                     )}
                                 </div>
                             </div>
-                        ))
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-type PendingProps = {
-    categoryLibrary: ServiceCategory[];
-    approveCategory: (categoryId: string, reviewerId?: string) => void;
-    rejectCategory: (categoryId: string, reviewerId?: string) => void;
-    currentUserId: string;
-};
-
-const PendingCategoryList: React.FC<PendingProps> = ({
-    categoryLibrary,
-    approveCategory,
-    rejectCategory,
-    currentUserId
-}) => {
-    const pending = categoryLibrary.filter((c) => c.status === 'PENDING');
-    if (pending.length === 0) {
-        return <div className="p-4 text-sm text-slate-500 dark:text-slate-400">No pending categories.</div>;
-    }
-
-    return (
-        <div className="divide-y divide-slate-100 dark:divide-slate-700">
-            {pending.map((category) => (
-                <div key={category.id} className="p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                    <div>
-                        <div className="text-sm font-semibold text-slate-900 dark:text-white">{category.name}</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">{category.description}</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            Synonyms: {category.synonyms.join(', ') || '—'}
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button size="sm" onClick={() => approveCategory(category.id, currentUserId)}>Approve</Button>
-                        <Button size="sm" variant="outline" onClick={() => rejectCategory(category.id, currentUserId)}>Reject</Button>
+                        ))}
                     </div>
                 </div>
-            ))}
+            )}
         </div>
     );
 };

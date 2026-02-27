@@ -1,37 +1,57 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { StoreContext } from '../../store';
-import { UserRole, JobTemplate } from '../../types';
+import { UserRole, VerificationDocument } from '../../types';
 import {
-    Rocket, ChevronLeft, Wand2, ArrowRight,
-    Users, Loader2, Clock, Briefcase, CheckCircle, Star,
-    Building2, Mail, Copy, Check, Plus, Trash2, User
+    Rocket, ChevronLeft, ArrowRight,
+    Users, Loader2,
+    Mail, Copy, Check, Plus, User, MapPin, Upload, X, ShieldCheck
 } from 'lucide-react';
 import { Button } from '../Button';
-import { INDUSTRY_OPTIONS } from '../../data/industryOptions';
+import { AddressAutocomplete, AddressSuggestion } from '../AddressAutocomplete';
 
-const INDUSTRIES = INDUSTRY_OPTIONS.map((industry) => ({
-    ...industry,
-    icon: '🏠'
-}));
+const VENDOR_CATEGORY_GROUPS = [
+    {
+        label: 'Maintain & Fix',
+        options: ['Contractors', 'Construction & Design Services', 'Property Managers', 'Cleaning Crews']
+    },
+    {
+        label: 'Improve & Upgrade',
+        options: ['Construction & Design Services', 'Geotechnical Services', 'Solar Installers', 'Landscapers']
+    },
+    {
+        label: 'Buy & Sell',
+        options: ['Geotechnical Services', 'Realtors', 'Inspectors', 'Photographers', 'Stagers']
+    },
+    {
+        label: 'Finance & Structure',
+        options: ['Lenders', 'Appraisers']
+    },
+    {
+        label: 'Move & Logistics',
+        options: ['Logistics & FF&E']
+    }
+];
 
 export const OnboardingWizard: React.FC = () => {
     const store = useContext(StoreContext);
 
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [aiGenerating, setAiGenerating] = useState(false);
 
     const [businessInfo, setBusinessInfo] = useState({
         companyName: store?.settings?.companyName || '',
         companyAddress: store?.settings?.companyAddress || '',
         hoursStart: '08:00',
         hoursEnd: '18:00',
-        industry: ''
+        industry: '',
+        serviceCategories: [] as string[],
+        coverageAreas: store?.settings?.coverageAreas || store?.settings?.regionalAccess || [],
+        verificationDocuments: (store?.settings?.verificationDocuments || []) as VerificationDocument[]
     });
+    const [selectedVendorGroup, setSelectedVendorGroup] = useState('');
+    const [coverageInput, setCoverageInput] = useState('');
 
-    const [generatedTemplates, setGeneratedTemplates] = useState<JobTemplate[]>([]);
-
-    // Invitation State
+        // Invitation State
     const [inviteName, setInviteName] = useState('');
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteRole, setInviteRole] = useState<UserRole>(UserRole.TECHNICIAN);
@@ -39,7 +59,7 @@ export const OnboardingWizard: React.FC = () => {
     const [copiedCode, setCopiedCode] = useState(false);
 
     if (!store || !store.currentUser) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" /></div>;
-    const { currentUser, settings, updateSettings, completeOnboarding, addJobTemplate, inviteTeamMember, teamInvitations } = store;
+    const { currentUser, settings, updateSettings, completeOnboarding, inviteTeamMember, teamInvitations } = store;
     const isAdmin = currentUser.role === UserRole.ADMIN;
 
     if (!isAdmin) {
@@ -62,56 +82,91 @@ export const OnboardingWizard: React.FC = () => {
     const handleNext = () => setStep(prev => prev + 1);
     const handleBack = () => setStep(prev => Math.max(1, prev - 1));
 
-    const handleIndustrySelect = (industryId: string) => {
-        setBusinessInfo(prev => ({ ...prev, industry: industryId }));
-        generateSmartTemplates(industryId);
+    useEffect(() => {
+        const pendingCoverage = localStorage.getItem('pendingVendorCoverageAreas');
+        if (!pendingCoverage) return;
+        try {
+            const parsed = JSON.parse(pendingCoverage) as string[];
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                setBusinessInfo((prev) => ({
+                    ...prev,
+                    coverageAreas: Array.from(new Set([...prev.coverageAreas, ...parsed]))
+                }));
+            }
+        } catch (error) {
+            console.error('Failed to parse pending coverage areas:', error);
+        } finally {
+            localStorage.removeItem('pendingVendorCoverageAreas');
+        }
+    }, []);
+
+    const handleIndustrySelect = (category: string) => {
+        setBusinessInfo(prev => {
+            const exists = prev.serviceCategories.includes(category);
+            const nextCategories = exists
+                ? prev.serviceCategories.filter(item => item !== category)
+                : [...prev.serviceCategories, category];
+            return { ...prev, serviceCategories: nextCategories };
+        });
     };
 
-    const generateSmartTemplates = (industryId: string) => {
-        let templates: JobTemplate[] = [];
-        switch (industryId) {
-            case 'property-management':
-                templates = [
-                    { id: crypto.randomUUID(), name: "Unit Turnover", description: "Vacant unit make-ready scope.", defaultPrice: 450, defaultDurationMinutes: 240, category: "Turnover" },
-                    { id: crypto.randomUUID(), name: "Leasing Walkthrough", description: "Pre-leasing inspection.", defaultPrice: 125, defaultDurationMinutes: 60, category: "Inspection" }
-                ];
-                break;
-            case 'multifamily':
-                templates = [
-                    { id: crypto.randomUUID(), name: "Amenity Refresh", description: "Pool, gym, and common area refresh.", defaultPrice: 750, defaultDurationMinutes: 360, category: "Amenities" },
-                    { id: crypto.randomUUID(), name: "Work Order Bundle", description: "Batch maintenance for occupied units.", defaultPrice: 320, defaultDurationMinutes: 180, category: "Maintenance" }
-                ];
-                break;
-            case 'single-family':
-                templates = [
-                    { id: crypto.randomUUID(), name: "Rental Turnover", description: "SFR turnover and punch list.", defaultPrice: 380, defaultDurationMinutes: 240, category: "Turnover" },
-                    { id: crypto.randomUUID(), name: "Move-In Inspection", description: "Baseline inspection with photos.", defaultPrice: 150, defaultDurationMinutes: 90, category: "Inspection" }
-                ];
-                break;
-            case 'commercial':
-                templates = [
-                    { id: crypto.randomUUID(), name: "Tenant Buildout Punch", description: "Punch list for tenant buildout.", defaultPrice: 980, defaultDurationMinutes: 480, category: "Project" },
-                    { id: crypto.randomUUID(), name: "Preventative Maintenance", description: "Quarterly mechanical and electrical check.", defaultPrice: 420, defaultDurationMinutes: 180, category: "Maintenance" }
-                ];
-                break;
-            case 'hoa':
-                templates = [
-                    { id: crypto.randomUUID(), name: "Community Grounds", description: "Common area upkeep.", defaultPrice: 260, defaultDurationMinutes: 180, category: "Grounds" },
-                    { id: crypto.randomUUID(), name: "Violation Walk", description: "Compliance walk and notes.", defaultPrice: 120, defaultDurationMinutes: 90, category: "Inspection" }
-                ];
-                break;
-            case 'construction':
-                templates = [
-                    { id: crypto.randomUUID(), name: "Scope Walkthrough", description: "Scope walkthrough and budget.", defaultPrice: 300, defaultDurationMinutes: 120, category: "Planning" },
-                    { id: crypto.randomUUID(), name: "Draw Inspection", description: "Progress inspection for draw.", defaultPrice: 220, defaultDurationMinutes: 90, category: "Inspection" }
-                ];
-                break;
-            default:
-                templates = [
-                    { id: crypto.randomUUID(), name: "Standard Service", description: "General real estate service call.", defaultPrice: 150, defaultDurationMinutes: 90, category: "General" }
-                ];
+    const handleAddCoverageArea = () => {
+        const normalized = coverageInput.trim();
+        if (!normalized) return;
+        if (businessInfo.coverageAreas.includes(normalized)) {
+            setCoverageInput('');
+            return;
         }
-        setGeneratedTemplates(templates);
+        setBusinessInfo((prev) => ({ ...prev, coverageAreas: [...prev.coverageAreas, normalized] }));
+        setCoverageInput('');
+    };
+
+    const handleRemoveCoverageArea = (area: string) => {
+        setBusinessInfo((prev) => ({
+            ...prev,
+            coverageAreas: prev.coverageAreas.filter((item) => item !== area)
+        }));
+    };
+
+    const readFileAsDataUrl = (file: File): Promise<string> =>
+        new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+        });
+
+    const handleVerificationUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        try {
+            const uploaded = await Promise.all(
+                files.map(async (file) => ({
+                    id: crypto.randomUUID(),
+                    name: file.name,
+                    fileType: file.type || 'application/octet-stream',
+                    fileSize: file.size,
+                    uploadedAt: new Date().toISOString(),
+                    dataUrl: await readFileAsDataUrl(file)
+                }))
+            );
+            setBusinessInfo((prev) => ({
+                ...prev,
+                verificationDocuments: [...prev.verificationDocuments, ...uploaded]
+            }));
+        } catch (error) {
+            console.error('Failed to upload verification documents:', error);
+        } finally {
+            e.target.value = '';
+        }
+    };
+
+    const handleRemoveVerificationDoc = (id: string) => {
+        setBusinessInfo((prev) => ({
+            ...prev,
+            verificationDocuments: prev.verificationDocuments.filter((doc) => doc.id !== id)
+        }));
     };
 
     const handleInvite = async () => {
@@ -144,12 +199,13 @@ export const OnboardingWizard: React.FC = () => {
                 businessHoursStart: businessInfo.hoursStart,
                 businessHoursEnd: businessInfo.hoursEnd,
                 industry: businessInfo.industry,
+                serviceCategories: businessInfo.serviceCategories,
+                coverageAreas: businessInfo.coverageAreas,
+                regionalAccess: businessInfo.coverageAreas,
+                verificationDocuments: businessInfo.verificationDocuments,
+                verifiedBusinessBadge: businessInfo.verificationDocuments.length > 0,
                 onboardingStep: 99
             });
-
-            for (const tmpl of generatedTemplates) {
-                await addJobTemplate(tmpl);
-            }
 
             await completeOnboarding();
         } catch (error) {
@@ -165,7 +221,7 @@ export const OnboardingWizard: React.FC = () => {
 
                 {/* Progress Bar */}
                 <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5">
-                    <div className="bg-emerald-500 h-1.5 transition-all duration-500" style={{ width: `${(step / 4) * 100}%` }}></div>
+                    <div className="bg-emerald-500 h-1.5 transition-all duration-500" style={{ width: `${(step / 3) * 100}%` }}></div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-8 md:p-12 custom-scrollbar">
@@ -191,72 +247,146 @@ export const OnboardingWizard: React.FC = () => {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold mb-2 text-slate-700 dark:text-slate-300">Location</label>
-                                        <input
-                                            className="w-full border rounded-xl p-3 bg-slate-50 dark:bg-slate-900 dark:border-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white transition-all"
+                                        <AddressAutocomplete
                                             value={businessInfo.companyAddress}
-                                            onChange={e => setBusinessInfo({ ...businessInfo, companyAddress: e.target.value })}
+                                            onChange={(value) => setBusinessInfo({ ...businessInfo, companyAddress: value })}
+                                            onSelect={(suggestion: AddressSuggestion) => {
+                                                setBusinessInfo({
+                                                    ...businessInfo,
+                                                    companyAddress: suggestion.label
+                                                });
+                                            }}
+                                            inputClassName="w-full border rounded-xl p-3 bg-slate-50 dark:bg-slate-900 dark:border-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white transition-all"
                                             placeholder="City, State"
                                         />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold mb-2 text-slate-700 dark:text-slate-300">Coverage Areas</label>
+                                        <div className="flex gap-2 mb-2">
+                                            <input
+                                                className="flex-1 border rounded-xl p-3 bg-slate-50 dark:bg-slate-900 dark:border-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white transition-all"
+                                                value={coverageInput}
+                                                onChange={(e) => setCoverageInput(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ',') {
+                                                        e.preventDefault();
+                                                        handleAddCoverageArea();
+                                                    }
+                                                }}
+                                                placeholder="Add city, ZIP, or region"
+                                            />
+                                            <Button type="button" onClick={handleAddCoverageArea} className="shrink-0">
+                                                <MapPin className="w-4 h-4 mr-1" /> Add
+                                            </Button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {businessInfo.coverageAreas.length === 0 ? (
+                                                <span className="text-xs text-slate-500">No coverage areas added yet.</span>
+                                            ) : (
+                                                businessInfo.coverageAreas.map((area) => (
+                                                    <span key={area} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 text-xs font-semibold">
+                                                        {area}
+                                                        <button type="button" onClick={() => handleRemoveCoverageArea(area)} className="text-emerald-600 hover:text-emerald-800">
+                                                            <X className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </span>
+                                                ))
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold mb-3 text-slate-700 dark:text-slate-300">Select Industry</label>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {INDUSTRIES.map(ind => (
-                                            <button
-                                                key={ind.id}
-                                                onClick={() => handleIndustrySelect(ind.id)}
-                                                className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2
-                                                ${businessInfo.industry === ind.id
-                                                        ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500 text-emerald-900 dark:bg-emerald-900/20 dark:text-emerald-100'
-                                                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-emerald-300'}`}
+                                    <label className="block text-sm font-bold mb-3 text-slate-700 dark:text-slate-300">Service Categories</label>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Parent Category</label>
+                                            <select
+                                                value={selectedVendorGroup}
+                                                onChange={(e) => {
+                                                    setSelectedVendorGroup(e.target.value);
+                                                    setBusinessInfo(prev => ({
+                                                        ...prev,
+                                                        industry: e.target.value,
+                                                        serviceCategories: []
+                                                    }));
+                                                }}
+                                                className="mt-2 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3 text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none"
                                             >
-                                                <span className="text-xl">{ind.icon}</span>
-                                                <span className="text-sm font-medium">{ind.label}</span>
-                                            </button>
-                                        ))}
+                                                <option value="">Select a category group</option>
+                                                {VENDOR_CATEGORY_GROUPS.map(group => (
+                                                    <option key={group.label} value={group.label}>{group.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Child Categories (multi-select)</label>
+                                            <div className={`mt-2 space-y-2 max-h-52 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl p-3 ${!selectedVendorGroup ? 'opacity-60 pointer-events-none' : ''}`}>
+                                                {(VENDOR_CATEGORY_GROUPS.find(group => group.label === selectedVendorGroup)?.options || []).map(option => {
+                                                    const selected = businessInfo.serviceCategories.includes(option);
+                                                    return (
+                                                        <label key={option} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selected}
+                                                                onChange={() => handleIndustrySelect(option)}
+                                                            />
+                                                            {option}
+                                                        </label>
+                                                    );
+                                                })}
+                                                {!selectedVendorGroup && (
+                                                    <div className="text-xs text-slate-500">Select a parent category to see options.</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-6 rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-900/50">
+                                        <div className="flex items-start justify-between gap-4 mb-3">
+                                            <div>
+                                                <div className="text-sm font-bold text-slate-900 dark:text-white">Verification Documents</div>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">Upload license, insurance, or tax docs to enable a verified business badge.</p>
+                                            </div>
+                                            <ShieldCheck className={`w-5 h-5 ${businessInfo.verificationDocuments.length > 0 ? 'text-emerald-500' : 'text-slate-400'}`} />
+                                        </div>
+                                        <label className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 cursor-pointer">
+                                            <Upload className="w-4 h-4" />
+                                            Upload files
+                                            <input
+                                                type="file"
+                                                multiple
+                                                accept=".pdf,image/*"
+                                                className="hidden"
+                                                onChange={handleVerificationUpload}
+                                            />
+                                        </label>
+                                        <div className="mt-3 space-y-2">
+                                            {businessInfo.verificationDocuments.length === 0 ? (
+                                                <p className="text-xs text-slate-500">No documents uploaded yet.</p>
+                                            ) : (
+                                                businessInfo.verificationDocuments.map((doc) => (
+                                                    <div key={doc.id} className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 bg-white dark:bg-slate-800">
+                                                        <div className="min-w-0">
+                                                            <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">{doc.name}</p>
+                                                            <p className="text-[11px] text-slate-500">{Math.round(doc.fileSize / 1024)} KB</p>
+                                                        </div>
+                                                        <button type="button" onClick={() => handleRemoveVerificationDoc(doc.id)} className="text-slate-400 hover:text-red-500">
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* STEP 2: SMART CUSTOMIZATION */}
+                    {/* STEP 2: TEAM & COMPANY CODE */}
                     {step === 2 && (
-                        <div className="max-w-2xl mx-auto">
-                            <div className="text-center mb-8">
-                                <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Wand2 className="w-8 h-8" />
-                                </div>
-                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Smart Setup</h2>
-                                <p className="text-slate-500 dark:text-slate-400">Based on <strong>{INDUSTRIES.find(i => i.id === businessInfo.industry)?.label}</strong>, we've prepared these templates for you.</p>
-                            </div>
-
-                            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 mb-8">
-                                <h3 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                                    <Star className="w-4 h-4 text-amber-500 fill-amber-500" /> Recommended Services
-                                </h3>
-                                <div className="space-y-3">
-                                    {generatedTemplates.map((tmpl, idx) => (
-                                        <div key={idx} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex justify-between items-center shadow-sm">
-                                            <div>
-                                                <p className="font-bold text-slate-900 dark:text-white">{tmpl.name}</p>
-                                                <p className="text-sm text-slate-500">{tmpl.description}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-bold text-slate-900 dark:text-white">${tmpl.defaultPrice}</p>
-                                                <p className="text-xs text-slate-500">{tmpl.defaultDurationMinutes} min</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* STEP 3: TEAM & COMPANY CODE */}
-                    {step === 3 && (
                         <div className="max-w-3xl mx-auto">
                             <div className="text-center mb-8">
                                 <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -301,6 +431,8 @@ export const OnboardingWizard: React.FC = () => {
                                                 >
                                                     <option value={UserRole.TECHNICIAN}>Technician</option>
                                                     <option value={UserRole.OFFICE}>Office Staff</option>
+                                                    <option value={UserRole.ASSISTANT}>Assistant</option>
+                                                    <option value={UserRole.MARKETING}>Marketing Only</option>
                                                     <option value={UserRole.ADMIN}>Admin</option>
                                                 </select>
                                             </div>
@@ -371,8 +503,8 @@ export const OnboardingWizard: React.FC = () => {
                         </div>
                     )}
 
-                    {/* STEP 4: COMPLETION */}
-                    {step === 4 && (
+                    {/* STEP 3: COMPLETION */}
+                    {step === 3 && (
                         <div className="max-w-lg mx-auto text-center pt-10">
                             <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
                                 <Rocket className="w-12 h-12" />
@@ -410,10 +542,21 @@ export const OnboardingWizard: React.FC = () => {
                         <button onClick={handleBack} className="flex items-center text-slate-500 font-bold px-4 py-2 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
                             <ChevronLeft className="w-4 h-4 mr-1" /> Back
                         </button>
-                    ) : <div></div>}
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                await store.logout();
+                                window.location.href = `${window.location.origin}/#/`;
+                            }}
+                            className="flex items-center text-slate-500 font-bold px-4 py-2 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                    )}
 
-                    {step < 4 ? (
-                        <Button onClick={handleNext} disabled={step === 1 && !businessInfo.industry}>
+                    {step < 3 ? (
+                        <Button onClick={handleNext} disabled={step === 1 && businessInfo.serviceCategories.length === 0}>
                             Next Step <ArrowRight className="w-4 h-4 ml-2" />
                         </Button>
                     ) : (

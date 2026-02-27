@@ -14,7 +14,10 @@ const defaultSettings: AppSettings = {
     smsTemplateOnMyWay: "Hi {{clientName}}, this is {{techName}} from {{companyName}}. I'm on my way to your location!",
     onboardingStep: 1,
     industry: '',
-    regionalAccess: []
+    regionalAccess: [],
+    coverageAreas: [],
+    verificationDocuments: [],
+    verifiedBusinessBadge: false
 };
 
 export const createUiSlice: StoreSlice<any> = (set, get) => ({
@@ -65,15 +68,43 @@ export const createUiSlice: StoreSlice<any> = (set, get) => ({
                 company_name: s.companyName,
                 industry: s.industry,
                 company_address: s.companyAddress,
+                company_code: s.companyCode,
                 onboarding_step: s.onboardingStep,
                 tax_rate: s.taxRate,
+                currency: s.currency,
                 business_hours_start: s.businessHoursStart,
                 business_hours_end: s.businessHoursEnd,
+                low_stock_threshold: s.lowStockThreshold,
                 sms_template_on_my_way: s.smsTemplateOnMyWay,
-                enable_auto_invoice: s.enableAutoInvoice
+                enable_auto_invoice: s.enableAutoInvoice,
+                service_categories: s.serviceCategories || [],
+                payment_methods: s.paymentMethods || [],
+                coverage_areas: s.coverageAreas || s.regionalAccess || [],
+                verification_documents: s.verificationDocuments || [],
+                verified_business_badge: Boolean(s.verifiedBusinessBadge)
             };
 
-            await supabase.from('settings').upsert(dbSettings, { onConflict: 'company_id' });
+            const { error } = await supabase.from('settings').upsert(dbSettings, { onConflict: 'company_id' });
+            if (error) {
+                const fallbackSettings = {
+                    company_id: currentUser.companyId,
+                    company_name: s.companyName,
+                    industry: s.industry,
+                    company_address: s.companyAddress,
+                    company_code: s.companyCode,
+                    onboarding_step: s.onboardingStep,
+                    tax_rate: s.taxRate,
+                    currency: s.currency,
+                    business_hours_start: s.businessHoursStart,
+                    business_hours_end: s.businessHoursEnd,
+                    low_stock_threshold: s.lowStockThreshold,
+                    sms_template_on_my_way: s.smsTemplateOnMyWay,
+                    enable_auto_invoice: s.enableAutoInvoice,
+                    service_categories: s.serviceCategories || [],
+                    payment_methods: s.paymentMethods || []
+                };
+                await supabase.from('settings').upsert(fallbackSettings, { onConflict: 'company_id' });
+            }
         }
     },
 

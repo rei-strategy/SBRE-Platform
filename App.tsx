@@ -4,7 +4,6 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore, StoreContext } from './store';
 import { Sidebar } from './components/Sidebar';
 import { MobileNavigation } from './components/MobileNavigation';
-import { ActivityFeed } from './components/ActivityFeed';
 import { ClockTimer } from './components/ClockTimer';
 import { LandingPage } from './pages/LandingPage';
 import { FeaturesPage } from './pages/FeaturesPage';
@@ -12,6 +11,7 @@ import { PricingPage } from './pages/PricingPage';
 import { HowItWorksPage } from './pages/HowItWorksPage';
 import { VendorBenefitsPage } from './pages/VendorBenefitsPage';
 import { CategoriesPage } from './pages/CategoriesPage';
+import { ChangelogPage } from './pages/Changelog';
 import { Dashboard } from './pages/Dashboard';
 import { Schedule } from './pages/Schedule';
 import { JobDetail } from './pages/JobDetail';
@@ -22,35 +22,23 @@ import { ClientDetail } from './pages/ClientDetail';
 import { QuotesList } from './pages/QuotesList';
 import { TeamList } from './pages/TeamList';
 import { TeamDetail } from './pages/TeamDetail';
+import { Contacts } from './pages/Contacts';
 import { Reports } from './pages/Reports';
 import { JobsMap } from './components/JobsMap';
-import { Marketing } from './pages/Marketing';
-import { MarketingCampaigns } from './pages/MarketingCampaigns';
-import { MarketingCampaignBuilder } from './pages/MarketingCampaignBuilder';
-import { MarketingCampaignDetails } from './pages/MarketingCampaignDetails';
-import { MarketingAutomations } from './pages/MarketingAutomations';
-import { MarketingAutomationBuilder } from './pages/MarketingAutomationBuilder';
-import { MarketingAudiences } from './pages/MarketingAudiences';
-import { AIReceptionist } from './pages/AIReceptionist';
+import { NotificationsPage } from './pages/Notifications';
 import { Communication } from './pages/Communication';
 import { Timesheets } from './pages/Timesheets';
 import TrackJob from './pages/TrackJob';
 import GeofencingWatcher from './components/GeofencingWatcher';
 import OfflineSyncManager from './components/OfflineSyncManager';
 import { Settings } from './pages/Settings';
+import { AdminSettingsHub } from './pages/AdminSettingsHub';
 import { InventoryDashboard } from './pages/inventory/InventoryDashboard';
 import { Products } from './pages/inventory/Products';
 import { StockLevels } from './pages/inventory/StockLevels';
 import { PurchaseOrders } from './pages/inventory/PurchaseOrders';
 import { Loader2 } from 'lucide-react';
 import { OnboardingWizard } from './components/Onboarding/OnboardingWizard';
-import { YavaChat } from './components/YavaChat';
-import { MarketingLayout } from './components/Marketing/MarketingLayout';
-import { AdsDashboard } from './pages/marketing/AdsDashboard';
-import { MetaAdsPage } from './pages/marketing/MetaAdsPage';
-import { GoogleAdsPage } from './pages/marketing/GoogleAdsPage';
-import { AICreativeStudio } from './pages/marketing/AICreativeStudio';
-import { AttributionPage } from './pages/marketing/AttributionPage';
 
 // Research Import
 import { ResearchLayout } from './pages/research/ResearchLayout';
@@ -65,6 +53,7 @@ import { GrowthPlanGenerator } from './pages/research/GrowthPlanGenerator';
 
 import { UserRole } from './types';
 import { NewUserOnboarding } from './pages/NewUserOnboarding';
+import { ClientDashboard } from './pages/ClientDashboard';
 
 const LOGO_ALT = 'SBRE platform logo';
 
@@ -74,6 +63,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   if (!store) return null;
   const { currentUser, switchUser, logout, theme } = store;
+  const [roleSwitchNotice, setRoleSwitchNotice] = useState<string | null>(null);
 
   // --- SAFEGUARD ---
   // Ensure we have a valid user and company ID before rendering the app layout
@@ -87,14 +77,26 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const handleUserSwitch = () => {
     const newRole = currentUser.role === UserRole.ADMIN ? UserRole.TECHNICIAN : UserRole.ADMIN;
+    if (!window.confirm(`Switch role from ${currentUser.role} to ${newRole}?`)) return;
     switchUser(newRole);
+    setRoleSwitchNotice(`Role changed to ${newRole}.`);
   };
+
+  useEffect(() => {
+    if (!roleSwitchNotice) return;
+    const timer = setTimeout(() => setRoleSwitchNotice(null), 3000);
+    return () => clearTimeout(timer);
+  }, [roleSwitchNotice]);
 
   return (
     <div className={theme}>
       <div className="min-h-screen flex bg-[#f8fafc] dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
-        <ActivityFeed />
         <ClockTimer />
+        {roleSwitchNotice && (
+          <div className="fixed top-4 right-4 z-50 bg-slate-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg border border-slate-700">
+            {roleSwitchNotice}
+          </div>
+        )}
 
         {/* Desktop Sidebar */}
         <div
@@ -146,7 +148,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </main>
 
         {/* Yava Chat Widget */}
-        <YavaChat />
+        {/* Removed per request */}
       </div>
     </div>
   );
@@ -177,7 +179,7 @@ const App: React.FC = () => {
           <NewUserOnboarding
             onComplete={() => {
               store.completeOnboarding();
-              window.location.hash = '#/platform';
+              window.location.hash = '#/client-dashboard';
             }}
           />
         </HashRouter>
@@ -191,11 +193,11 @@ const App: React.FC = () => {
       <StoreContext.Provider value={store}>
         <HashRouter>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<Navigate to="/client-dashboard" replace />} />
             <Route path="/platform" element={<CategoriesPage />} />
-            <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/client-dashboard" element={<ClientDashboard />} />
             <Route path="/vendor-benefits" element={<VendorBenefitsPage />} />
-            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/changelog" element={<ChangelogPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </HashRouter>
@@ -228,6 +230,7 @@ const App: React.FC = () => {
               <Route path="/how-it-works" element={<HowItWorksPage />} />
               <Route path="/vendor-benefits" element={<VendorBenefitsPage />} />
               <Route path="/platform" element={<CategoriesPage />} />
+              <Route path="/changelog" element={<ChangelogPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           ) : (
@@ -249,6 +252,7 @@ const App: React.FC = () => {
                 <Route path="/timesheets" element={<Timesheets />} />
                 <Route path="/track/:token" element={<TrackJob />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/admin/settings" element={<AdminSettingsHub />} />
                 <Route
                   path="/jobs/:id"
                   element={
@@ -260,6 +264,7 @@ const App: React.FC = () => {
                   }
                 />
                 <Route path="/clients" element={<ClientsList clients={store.clients} jobs={store.jobs} invoices={store.invoices} onAddClient={store.addClient} onDeleteClient={store.deleteClient} />} />
+                <Route path="/contacts" element={<Contacts />} />
                 <Route
                   path="/clients/:id"
                   element={
@@ -274,31 +279,23 @@ const App: React.FC = () => {
                   }
                 />
                 <Route path="/quotes" element={<QuotesList quotes={store.quotes} clients={store.clients} onAddQuote={store.addQuote} onUpdateQuote={store.updateQuote} />} />
-                <Route path="/invoices" element={<Invoices invoices={store.invoices} clients={store.clients} onCreateInvoice={store.createInvoice} onUpdateInvoice={store.updateInvoice} />} />
+                <Route path="/invoices" element={<Invoices invoices={store.invoices} clients={store.clients} jobs={store.jobs} onCreateInvoice={store.createInvoice} onUpdateInvoice={store.updateInvoice} />} />
                 <Route path="/team" element={<TeamList users={store.users} jobs={store.jobs} />} />
                 <Route path="/team/:id" element={<TeamDetail users={store.users} jobs={store.jobs} />} />
-                <Route path="/reports" element={<Reports jobs={store.jobs} invoices={store.invoices} users={store.users} />} />
-
-                {/* MARKETING & ADS (UNIFIED) */}
-                <Route path="/marketing" element={<MarketingLayout><Marketing campaigns={store.marketingCampaigns} /></MarketingLayout>} />
-
-                {/* Legacy Growth Routes (Wrapped in New Layout) */}
-                <Route path="/marketing/campaigns" element={<MarketingLayout><MarketingCampaigns campaigns={store.marketingCampaigns} segments={store.marketingAudiences} onAddCampaign={store.addCampaign} /></MarketingLayout>} />
-                <Route path="/marketing/campaigns/new" element={<MarketingCampaignBuilder />} />
-                <Route path="/marketing/campaigns/:id" element={<MarketingCampaignDetails />} />
-                <Route path="/marketing/campaigns/:id/edit" element={<MarketingCampaignBuilder />} />
-
-                <Route path="/marketing/automations" element={<MarketingLayout><MarketingAutomations /></MarketingLayout>} />
-                <Route path="/marketing/automations/:id" element={<MarketingAutomationBuilder />} />
-
-                <Route path="/marketing/audiences" element={<MarketingLayout><MarketingAudiences segments={store.marketingAudiences} /></MarketingLayout>} />
-
-                {/* Ads Module Routes */}
-                <Route path="/marketing/ads" element={<MarketingLayout><AdsDashboard /></MarketingLayout>} />
-                <Route path="/marketing/meta" element={<MarketingLayout><MetaAdsPage /></MarketingLayout>} />
-                <Route path="/marketing/google" element={<MarketingLayout><GoogleAdsPage /></MarketingLayout>} />
-                <Route path="/marketing/studio" element={<MarketingLayout><AICreativeStudio /></MarketingLayout>} />
-                <Route path="/marketing/attribution" element={<MarketingLayout><AttributionPage /></MarketingLayout>} />
+                <Route
+                  path="/reports"
+                  element={
+                    <Reports
+                      jobs={store.jobs}
+                      invoices={store.invoices}
+                      users={store.users}
+                      crmAccounts={store.crmAccounts}
+                      crmQuotes={store.crmQuotes}
+                      crmJobs={store.crmJobs}
+                      crmInvoices={store.crmInvoices}
+                    />
+                  }
+                />
 
                 {/* INVENTORY ROUTES */}
                 <Route path="/inventory" element={<InventoryDashboard products={store.inventoryProducts} records={store.inventoryRecords} purchaseOrders={store.purchaseOrders} jobs={store.jobs} />} />
@@ -319,9 +316,9 @@ const App: React.FC = () => {
                   <Route path="growth-plan-generator" element={<GrowthPlanGenerator />} />
                 </Route>
 
-                {/* AI TOOLS */}
-                <Route path="/ai-receptionist" element={<AIReceptionist />} />
                 <Route path="/communication" element={<Communication />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/changelog" element={<ChangelogPage />} />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

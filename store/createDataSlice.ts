@@ -1,6 +1,25 @@
 import { StoreSlice } from './types';
 import { supabase } from '../supabaseClient';
-import { UserRole, Property, User, EmailCampaign, MarketingAutomation, PurchaseOrder } from '../types';
+import { UserRole, Property, User, EmailCampaign, MarketingAutomation, PurchaseOrder, ActionType, AutomationTriggerType } from '../types';
+
+const normalizeTriggerType = (triggerType: string): AutomationTriggerType => {
+    const map: Record<string, AutomationTriggerType> = {
+        ON_MY_WAY: 'TECH_ON_MY_WAY',
+        BIRTHDAY: 'CLIENT_BIRTHDAY',
+        DORMANT: 'CLIENT_INACTIVE_60',
+        DORMANT_CLIENT: 'CLIENT_INACTIVE_60',
+        QUOTE_APPROVED: 'QUOTE_ACCEPTED'
+    };
+    return (map[triggerType] || triggerType) as AutomationTriggerType;
+};
+
+const normalizeActionType = (actionType: string): ActionType => {
+    const map: Record<string, ActionType> = {
+        EMAIL: 'SEND_EMAIL',
+        SMS: 'SEND_SMS'
+    };
+    return (map[actionType] || actionType) as ActionType;
+};
 
 export const createDataSlice: StoreSlice<any> = (set, get) => ({
     syncQueue: [], // Keeping placeholder for offline sync
@@ -10,7 +29,8 @@ export const createDataSlice: StoreSlice<any> = (set, get) => ({
             const [
                 settingsRes, clientsRes, jobsRes, quotesRes, invoicesRes,
                 campaignsRes, automationsRes, productsRes, recordsRes,
-                warehousesRes, chatsRes, messagesRes, profilesRes, invitesRes, audienceSegmentsRes
+                warehousesRes, chatsRes, messagesRes, profilesRes, invitesRes, audienceSegmentsRes,
+                vendorsRes, purchaseOrdersRes
             ] = await Promise.all([
                 supabase.from('settings').select('*').eq('company_id', companyId).single(),
                 supabase.from('clients').select('*, properties(*)').eq('company_id', companyId),
@@ -26,7 +46,9 @@ export const createDataSlice: StoreSlice<any> = (set, get) => ({
                 supabase.from('messages').select('*').eq('company_id', companyId),
                 supabase.from('profiles').select('*').eq('company_id', companyId),
                 supabase.from('team_invitations').select('*').eq('company_id', companyId),
-                supabase.from('audience_segments').select('*').eq('company_id', companyId)
+                supabase.from('audience_segments').select('*').eq('company_id', companyId),
+                supabase.from('vendors').select('*').eq('company_id', companyId),
+                supabase.from('purchase_orders').select('*').eq('company_id', companyId)
             ]);
 
             const updates: any = {};
@@ -47,7 +69,11 @@ export const createDataSlice: StoreSlice<any> = (set, get) => ({
                     serviceCategories: s.service_categories || [],
                     paymentMethods: s.payment_methods || [],
                     onboardingStep: s.onboarding_step,
-                    industry: s.industry
+                    industry: s.industry,
+                    regionalAccess: s.coverage_areas || [],
+                    coverageAreas: s.coverage_areas || [],
+                    verificationDocuments: s.verification_documents || [],
+                    verifiedBusinessBadge: Boolean(s.verified_business_badge)
                 };
             }
 
@@ -157,9 +183,52 @@ export const createDataSlice: StoreSlice<any> = (set, get) => ({
                 }));
             }
 
-            if (productsRes.data) updates.inventoryProducts = productsRes.data.map((p: any) => ({ ...p, minStock: p.min_stock, trackSerial: p.track_serial, supplierId: p.supplier_id }));
+            if (productsRes.data) {
+                updates.inventoryProducts = productsRes.data.map((p: any) => ({
+                    ...p,
+                    sku: p.sku || '',
+                    name: p.name || '',
+                    category: p.category || 'General',
+                    unit: p.unit || 'Each',
+                    minStock: p.min_stock ?? 0,
+                    trackSerial: p.track_serial ?? false,
+                    supplierId: p.supplier_id,
+                    image: p.image_url || p.image,
+                    barcode: p.barcode,
+                    description: p.description || ''
+                }));
+            }
             if (recordsRes.data) updates.inventoryRecords = recordsRes.data.map((r: any) => ({ ...r, productId: r.product_id, warehouseId: r.warehouse_id, lastUpdated: r.last_updated }));
             if (warehousesRes.data) updates.warehouses = warehousesRes.data;
+            if (vendorsRes.data) {
+                updates.vendors = vendorsRes.data.map((v: any) => ({
+                    id: v.id,
+                    name: v.name,
+                    email: v.email || '',
+                    phone: v.phone || '',
+                    contactPerson: v.contact_person || '',
+                    paymentTerms: v.payment_terms || '',
+                    leadTimeDays: v.lead_time_days || 0,
+                    rating: v.rating || 0,
+                    category: v.category || v.service_category || v.primary_category || '',
+                    location: v.location || v.city || '',
+                    lat: v.lat || v.latitude,
+                    lng: v.lng || v.longitude,
+                    tags: v.tags || []
+                }));
+            }
+            if (purchaseOrdersRes.data) {
+                updates.purchaseOrders = purchaseOrdersRes.data.map((po: any) => ({
+                    id: po.id,
+                    vendorId: po.vendor_id,
+                    status: po.status,
+                    orderDate: po.order_date,
+                    expectedDate: po.expected_date || undefined,
+                    items: Array.isArray(po.items) ? po.items : [],
+                    total: po.total || 0,
+                    notes: po.notes || ''
+                }));
+            }
             if (campaignsRes.data) {
                 updates.marketingCampaigns = campaignsRes.data.map((c: any) => ({
                     id: c.id,
@@ -187,9 +256,12 @@ export const createDataSlice: StoreSlice<any> = (set, get) => ({
                     companyId: a.company_id,
                     name: a.name,
                     description: a.description,
-                    triggerType: a.trigger_type,
+                    triggerType: normalizeTriggerType(a.trigger_type),
                     triggerConfig: a.trigger_config,
-                    steps: a.steps || [],
+                    steps: (a.steps || []).map((step: any) => ({
+                        ...step,
+                        type: normalizeActionType(step.type)
+                    })),
                     isActive: a.is_active,
                     stats: a.stats || { runs: 0, completed: 0 },
                     createdAt: a.created_at
@@ -208,8 +280,10 @@ export const createDataSlice: StoreSlice<any> = (set, get) => ({
                     id: s.id,
                     companyId: s.company_id,
                     name: s.name,
+                    type: s.type || 'DYNAMIC',
                     description: s.description,
                     filters: s.filters,
+                    criteria: s.criteria,
                     estimatedCount: s.estimated_count,
                     lastCalculatedAt: s.last_calculated_at,
                     createdAt: s.created_at

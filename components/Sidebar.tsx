@@ -5,12 +5,11 @@ import {
   LayoutDashboard, Calendar, Users, FileText, Briefcase, DollarSign,
   ChevronRight, ChevronLeft, PieChart, HardHat, PanelLeftOpen, Megaphone,
   Zap, Send, BarChart3, ChevronDown, Bot, Package, ShoppingCart, Box,
-  MessageSquare, LogOut, Settings, Bell, Moon, Sun, ArrowLeft, Clock,
-  Search, TrendingUp, Globe, Target, Rocket
+  MessageSquare, LogOut, Settings, Moon, Sun, ArrowLeft, Clock,
+  Search, TrendingUp, Globe, Target, Rocket, Video, Bell
 } from 'lucide-react';
 import { UserRole, User } from '../types';
 import { StoreContext } from '../store';
-import { formatDistanceToNow } from 'date-fns';
 
 interface SidebarProps {
   user: User;
@@ -26,14 +25,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onSwitchUser, isCollapse
   const location = useLocation();
   const navigate = useNavigate();
   const isAdmin = user.role === UserRole.ADMIN || user.role === UserRole.OFFICE;
+  const roleSwitchLabel = user.role === UserRole.ADMIN
+    ? 'Switch Role (Admin → Technician)'
+    : user.role === UserRole.TECHNICIAN
+      ? 'Switch Role (Technician → Admin)'
+      : `Switch Role (Current: ${user.role})`;
 
   const [currentView, setCurrentView] = useState<SidebarView>('nav');
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     'marketing': false,
     'inventory': false
   });
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-
   const notifications = store?.notifications.filter(n => n.userId === user.id) || [];
   const unreadCount = notifications.filter(n => !n.read).length;
   const unreadMessageCount = store?.messages.filter(m => m.senderId !== user.id && !m.readBy.includes(user.id)).length || 0;
@@ -45,7 +47,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onSwitchUser, isCollapse
 
   const handleProfileClick = () => {
     if (isCollapsed) toggleCollapse();
-    setCurrentView(currentView === 'nav' ? 'settings' : 'nav');
+    navigate('/settings');
   };
 
   const navSections = [
@@ -53,8 +55,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onSwitchUser, isCollapse
       label: 'General',
       items: [
         { path: '/', label: 'Dashboard', icon: LayoutDashboard, show: true },
+        { path: '/notifications', label: 'Notifications', icon: Bell, show: true, badge: unreadCount },
         { path: '/schedule', label: 'Schedule', icon: Calendar, show: true },
         { path: '/communication', label: 'Inbox', icon: MessageSquare, show: true, badge: unreadMessageCount },
+        { path: '/reports', label: 'Reports', icon: PieChart, show: isAdmin },
+        { path: '/admin/settings', label: 'Admin Panel', icon: Settings, show: isAdmin },
       ]
     },
     {
@@ -62,34 +67,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onSwitchUser, isCollapse
       items: [
         { path: '/jobs', label: 'Jobs', icon: Briefcase, show: true },
         { path: '/timesheets', label: 'Timesheets', icon: Clock, show: true },
-        { path: '/clients', label: 'Clients', icon: Users, show: isAdmin },
+        { path: '/contacts', label: 'Contacts', icon: Users, show: isAdmin },
         { path: '/team', label: 'Team', icon: HardHat, show: isAdmin },
-      ]
-    },
-    {
-      label: 'Finance',
-      items: [
-        { path: '/quotes', label: 'Quotes', icon: FileText, show: isAdmin },
-        { path: '/invoices', label: 'Invoices', icon: DollarSign, show: isAdmin },
-      ]
-    },
-    {
-      label: 'Growth',
-      items: [
-        {
-          id: 'marketing',
-          label: 'Marketing',
-          icon: Megaphone,
-          show: isAdmin,
-          isGroup: true,
-          subItems: [
-            { path: '/marketing', label: 'Overview', icon: BarChart3 },
-            { path: '/marketing/ads', label: 'Ads', icon: Megaphone },
-            { path: '/marketing/campaigns', label: 'Campaigns', icon: Send },
-            { path: '/marketing/automations', label: 'Automations', icon: Zap },
-            { path: '/marketing/audiences', label: 'Audiences', icon: Users },
-          ]
-        },
         {
           id: 'inventory',
           label: 'Inventory',
@@ -103,28 +82,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onSwitchUser, isCollapse
             { path: '/inventory/orders', label: 'Purchasing', icon: ShoppingCart },
           ]
         },
+        { path: '/marketing/automations', label: 'Automations', icon: Zap, show: isAdmin },
+      ]
+    },
+    {
+      label: 'Finance',
+      items: [
+        { path: '/quotes', label: 'Quotes', icon: FileText, show: isAdmin },
+        { path: '/invoices', label: 'Invoices', icon: DollarSign, show: isAdmin },
       ]
     },
     {
       label: 'Insights',
       items: [
-        { path: '/reports', label: 'Reports', icon: PieChart, show: isAdmin },
-        { path: '/ai-receptionist', label: 'AI Agent', icon: Bot, show: true },
+        { path: '/ai-receptionist', label: 'AI Agent', icon: Bot, show: false },
         {
           id: 'research',
           label: 'Research',
           icon: Search,
-          show: isAdmin,
+          show: false,
           isGroup: true,
           subItems: [
-            { path: '/research/growth-plan-generator', label: 'Growth Plan', icon: Rocket },
             { path: '/research/competitor-insights', label: 'Competitor Insights', icon: Users },
             { path: '/research/market-trends', label: 'Market Trends', icon: TrendingUp },
             { path: '/research/keyword-discovery', label: 'Keyword Discovery', icon: Search },
-            { path: '/research/pricing-benchmarks', label: 'Pricing', icon: DollarSign },
-            { path: '/research/seo-audit', label: 'SEO Audit', icon: Globe },
             { path: '/research/business-audit', label: 'Business Audit', icon: FileText },
+            { path: '/research/seo-audit', label: 'SEO Audit', icon: Globe },
             { path: '/research/opportunity-finder', label: 'Opportunities', icon: Target },
+            { path: '/research/growth-plan-generator', label: 'Growth Plan', icon: Rocket },
           ]
         }
       ]
@@ -137,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onSwitchUser, isCollapse
         {currentView === 'settings' ? (
           <div className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
             <div className={`transition-all duration-300 font-bold text-lg flex items-center gap-2 text-slate-900 dark:text-white ${isCollapsed ? 'hidden' : 'block'}`}><Settings className="w-5 h-5 text-teal-500" /> Settings</div>
-            <button onClick={() => { setCurrentView('nav'); setNotificationsOpen(false); }} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 transition-colors"><ArrowLeft className="w-5 h-5" /></button>
+            <button onClick={() => { setCurrentView('nav'); }} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 transition-colors"><ArrowLeft className="w-5 h-5" /></button>
           </div>
         ) : (
           <>
@@ -214,31 +199,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onSwitchUser, isCollapse
         })}
         {currentView === 'settings' && (
           <div className="px-3 space-y-2">
-            <div className="bg-slate-50 dark:bg-slate-800/30 rounded-xl overflow-hidden mb-4 border border-slate-200 dark:border-slate-800">
-              <button onClick={() => setNotificationsOpen(!notificationsOpen)} className="w-full flex items-center justify-between p-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="relative"><Bell className="w-5 h-5 text-slate-500 dark:text-slate-300" />{unreadCount > 0 && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />}</div>
-                  <span className={`text-sm font-medium text-slate-700 dark:text-slate-300 ${isCollapsed ? 'hidden' : 'block'}`}>Notifications</span>
-                </div>
-                {!isCollapsed && <div className="flex items-center gap-2">{unreadCount > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">{unreadCount}</span>}<ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${notificationsOpen ? 'rotate-180' : ''}`} /></div>}
-              </button>
-              <div className={`transition-all duration-300 ease-in-out bg-slate-100/50 dark:bg-slate-900/50 ${notificationsOpen && !isCollapsed ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                {notifications.length === 0 ? <div className="p-4 text-center text-xs text-slate-500">No notifications</div> : (
-                  <div className="overflow-y-auto max-h-[300px] custom-scrollbar">
-                    {notifications.map(n => (
-                      <div key={n.id} onClick={() => store?.markNotificationRead(n.id)} className={`p-3 border-b border-slate-200 dark:border-slate-800 last:border-0 hover:bg-slate-200/50 dark:hover:bg-slate-800/80 cursor-pointer ${!n.read ? 'bg-white dark:bg-slate-800/40' : ''}`}>
-                        <div className="flex justify-between items-start mb-1"><span className={`text-xs font-bold ${!n.read ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>{n.title}</span><span className="text-[9px] text-slate-500 dark:text-slate-600">{formatDistanceToNow(new Date(n.timestamp))}</span></div>
-                        <p className={`text-[10px] ${!n.read ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500'} line-clamp-2`}>{n.message}</p>
-                      </div>
-                    ))}
-                    {unreadCount > 0 && <button onClick={() => store?.markAllNotificationsRead()} className="w-full py-2 text-center text-[10px] text-emerald-600 dark:text-emerald-500 hover:text-emerald-500 dark:hover:text-emerald-400 font-bold bg-slate-100/80 dark:bg-slate-900/80 hover:bg-slate-200 dark:hover:bg-slate-900">Mark all as read</button>}
-                  </div>
-                )}
-              </div>
-            </div>
-            <button onClick={() => navigate('/settings')} className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"><Settings className="w-5 h-5" /><span className={`text-sm font-medium ${isCollapsed ? 'hidden' : 'block'}`}>{isAdmin ? 'Full Settings' : 'My Profile'}</span></button>
-            <button onClick={store?.toggleTheme} className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">{store?.theme === 'dark' ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-indigo-500" />}<span className={`text-sm font-medium ${isCollapsed ? 'hidden' : 'block'}`}>{store?.theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span></button>
-            <button onClick={onSwitchUser} className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"><PanelLeftOpen className="w-5 h-5" /><span className={`text-sm font-medium ${isCollapsed ? 'hidden' : 'block'}`}>Switch Role</span></button>
+            <button onClick={onSwitchUser} className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"><PanelLeftOpen className="w-5 h-5" /><span className={`text-sm font-medium ${isCollapsed ? 'hidden' : 'block'}`}>{roleSwitchLabel}</span></button>
             <button onClick={store?.logout} className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors mt-4"><LogOut className="w-5 h-5" /><span className={`text-sm font-medium ${isCollapsed ? 'hidden' : 'block'}`}>Logout</span></button>
           </div>
         )}
@@ -253,7 +214,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onSwitchUser, isCollapse
             </div>
             <div className={`flex-1 overflow-hidden transition-all duration-300 ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
               <p className="text-sm font-bold text-slate-700 dark:text-white truncate">{user.name.split(' ')[0]}</p>
-              <p className="text-[10px] font-medium text-teal-600 dark:text-teal-500 uppercase tracking-wide truncate">{currentView === 'settings' ? 'Close Settings' : 'My Settings'}</p>
+              <p className="text-[10px] font-medium text-teal-600 dark:text-teal-500 uppercase tracking-wide truncate">Settings</p>
             </div>
             {!isCollapsed && <Settings className={`w-4 h-4 text-slate-400 dark:text-slate-500 transition-transform ${currentView === 'settings' ? 'rotate-90 text-teal-500' : ''}`} />}
           </div>

@@ -6,6 +6,8 @@
 export enum UserRole {
   ADMIN = 'ADMIN',
   OFFICE = 'OFFICE',
+  ASSISTANT = 'ASSISTANT',
+  MARKETING = 'MARKETING',
   TECHNICIAN = 'TECHNICIAN',
   CLIENT = 'CLIENT',
 }
@@ -135,6 +137,11 @@ export interface Vendor {
   paymentTerms?: string;
   rating?: number;
   leadTimeDays?: number;
+  category?: string;
+  location?: string;
+  lat?: number;
+  lng?: number;
+  tags?: string[];
 }
 
 export enum POStatus {
@@ -204,6 +211,15 @@ export interface JobTemplate {
   category?: string;
 }
 
+export interface VerificationDocument {
+  id: string;
+  name: string;
+  fileType: string;
+  fileSize: number;
+  uploadedAt: string;
+  dataUrl?: string;
+}
+
 export interface AppSettings {
   companyName: string;
   companyAddress: string;
@@ -224,6 +240,9 @@ export interface AppSettings {
   onboardingStep?: number;
   industry?: string;
   regionalAccess?: string[];
+  coverageAreas?: string[];
+  verificationDocuments?: VerificationDocument[];
+  verifiedBusinessBadge?: boolean;
 }
 
 export interface TeamInvitation {
@@ -246,7 +265,7 @@ export interface AudienceSegment {
   type: 'DYNAMIC' | 'MANUAL'; // NEW
   description?: string;
   filters?: SegmentFilter[]; // Optional for MANUAL
-  criteria?: { includedIds: string[] }; // NEW: For MANUAL
+  criteria?: { includedIds?: string[]; matchType?: 'ALL' | 'ANY' }; // NEW: For MANUAL + filter logic
   estimatedCount: number;
   lastCalculatedAt?: string;
   createdAt: string;
@@ -874,7 +893,7 @@ export interface ServiceCategory {
 // MARKETING & ADS INTELLIGENCE TYPES
 // ==============================================
 
-export type AdPlatform = 'GOOGLE' | 'META';
+export type AdPlatform = 'GOOGLE' | 'META' | 'TIKTOK';
 export type AdStatus = 'ACTIVE' | 'PAUSED' | 'ENDED' | 'DRAFT';
 
 export type AdSubChannel =
@@ -887,6 +906,8 @@ export type AdSubChannel =
   | 'GOOGLE_LOCAL_SERVICES'
   | 'GOOGLE_GMAIL'
   | 'GOOGLE_MIX'
+  | 'TIKTOK_INFEED'
+  | 'TIKTOK_SPARK'
   | 'META_IG_FEED'
   | 'META_IG_REELS'
   | 'META_IG_STORIES'
