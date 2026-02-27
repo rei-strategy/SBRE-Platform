@@ -47,13 +47,13 @@ export const AdminSettingsHub: React.FC = () => {
   const store = useContext(StoreContext);
   if (!store) return null;
 
-  const isAdmin = store.currentUser.role === UserRole.ADMIN || store.currentUser.role === UserRole.OFFICE;
+  const isAdmin = store.currentUser.role === UserRole.ADMIN || store.currentUser.role === UserRole.OFFICE || store.currentUser.role === UserRole.CLIENT;
   if (!isAdmin) {
     return (
       <div className="max-w-4xl mx-auto py-16">
         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-8 text-center">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Admin Access Required</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-2">This page is available to Admin and Office roles only.</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">This page is available to Admin, Office, and Client roles.</p>
           <Link to="/settings" className="inline-flex mt-5 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold">
             Go to Settings
           </Link>
@@ -102,4 +102,3 @@ export const AdminSettingsHub: React.FC = () => {
     </div>
   );
 };
-
